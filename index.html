@@ -31,7 +31,7 @@
 
   <style>
     :root{
-      --bg:#4d4d4d;
+      --bg:#d7d7d7;
       --paper:#ffffff;
       --ink:#101928;
       --muted:#6c7480;
@@ -41,6 +41,20 @@
       --radius:20px;
       --sb-w:340px;
     }
+
+    /* Кнопка входа / админки в правом углу хедера */
+    .user-btn{
+      position:absolute; right:12px; top:50%; transform:translateY(-50%);
+      width:36px; height:36px; border-radius:50%;
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--line); background:#fff; color:#1f2430;
+      box-shadow:var(--shadow); text-decoration:none;
+    }
+    .user-btn:hover{ background:#f6f7ff; border-color:#dfe3ff; }
+    .user-btn:active{ transform:translateY(-50%) scale(0.98); }
+    .user-btn .material-symbols-outlined{ font-size:20px; line-height:1; }
+
+    
     body.sb-collapsed{ --sb-w:88px; }
 
     *{box-sizing:border-box}
@@ -136,6 +150,7 @@
     }
 
     .modal{
+      position: relative;
       width:min(980px, 94vw);
       max-height:min(88vh, 1000px);
       overflow:auto;
@@ -243,7 +258,11 @@
     </div>
   </div>
 
-  <header><h1>Історичні будівлі Дніпра</h1></header>
+  <header><h1>Історичні будівлі Дніпра</h1>
+  <a href="/admin.html" class="user-btn" title="Адмінка">
+  <span class="material-symbols-outlined">person</span>
+</a>
+  </header>
 
   <div class="main">
     <aside id="sidebar">
@@ -359,11 +378,11 @@
 
   // світло
   tb.scene.children = tb.scene.children.filter(obj => !(obj.isLight));
-  const ambient = new THREE.AmbientLight(0xffffff, 0.55); tb.scene.add(ambient);
-  const sun = new THREE.DirectionalLight(0xfff7e8, 1.1); sun.position.set(100,200,300);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.65); tb.scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff7e8, 1); sun.position.set(100,200,300);
   sun.castShadow = true; sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
   sun.shadow.radius = 8; sun.shadow.bias = -0.0005; tb.scene.add(sun);
-  const hemi = new THREE.HemisphereLight(0xe0eaff, 0x888888, 0.25); tb.scene.add(hemi);
+  const hemi = new THREE.HemisphereLight(0xe0eaff, 0x888888, 0); tb.scene.add(hemi);
   tb.renderer.shadowMap.enabled = true; tb.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // слой threebox (terrain выключен)

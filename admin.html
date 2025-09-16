@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <title>Адмінка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+
+  <!-- Mapbox GL (локально) -->
+  <link href="css/mapbox-gl.css" rel="stylesheet">
+  <script src="js/mapbox-gl.js"></script>
+
+  <!-- Threebox (локально) -->
+  <link href="css/threebox.css" rel="stylesheet" />
+  <script src="js/threebox.js"></script>
+
+  <!-- Model Viewer (GLB прев’ю) -->
+  <script type="module" src="js/model-viewer.min.js"></script>
+
+  <!-- Дані + токен -->
+  <script src="buildings.js"></script>
+  <script src="config.js"></script>
+
+  <style>
+    
+    :root{
+      --bg:#f2f3f7;
+      --paper:#ffffff;
+      --ink:#121826;
+      --muted:#6c7480;
+      --line:#e6eaf2;
+      --accent:#5e76fa;
+      --shadow:0 10px 30px rgba(0,0,0,.06),0 2px 10px rgba(0,0,0,.04);
+      --radius:16px;
+    }
+
+
+    /* щоб можна було позиціонувати кнопку всередині */
+    header { position: relative; }
+
+    /* кругла кнопка у правому куті */
+    .go-site{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    width:36px; height:36px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--line); background:#fff; color:#1f2430;
+    box-shadow:var(--shadow); text-decoration:none;
+    }
+    .go-site:hover{ background:#f6f7ff; border-color:#dfe3ff; }
+    .go-site:active{ transform:translateY(-50%) scale(0.98); }
+    .go-site .material-symbols-outlined{ font-size:20px; line-height:1; }
+
+    
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif}
+
+    /* Экран авторизации */
+    .auth{
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(180deg, rgba(10,14,26,.06), rgba(10,14,26,.12));
+      z-index:1000;
+    }
+    .auth-card{
+      width:min(420px, 92vw); background:#fff; border:1px solid var(--line); border-radius:16px;
+      box-shadow:var(--shadow); padding:18px;
+    }
+    .auth-card h2{margin:0 0 8px 0; font-size:18px}
+    .auth-row{display:flex; flex-direction:column; gap:6px; margin:8px 0}
+    .auth-row label{font-size:12px; color:#4b5162}
+    .auth-row input{
+      border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:14px; outline:none; background:#fff;
+    }
+    .auth-actions{display:flex; gap:8px; align-items:center; margin-top:10px}
+    .auth-btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+      border-radius:12px; border:1px solid var(--line); background:#fff; height:36px; padding:0 12px; color:#1f2430
+    }
+    .auth-btn.primary{border-color:#dfe3ff; background:#f6f7ff; color:#2b2d6b}
+    .auth-err{color:#8b1a1a; font-size:12px; display:none}
+    .auth-err.show{display:block}
+
+    /* Прячем приложение до авторизации */
+    #app.hidden{ display:none; }
+
+    #app{display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}
+
+    header,footer{
+      height:56px;display:flex;align-items:center;justify-content:center;background:var(--paper);
+      border-bottom:1px solid var(--line);box-shadow:var(--shadow)
+    }
+    footer{border-top:1px solid var(--line);border-bottom:none}
+
+    .main{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:16px}
+    @media (max-width: 1100px){ .main{grid-template-columns:1fr} }
+
+    /* Ліва колонка: список */
+    .panel{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+      padding:12px;min-height:520px
+    }
+    .row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+      border-radius:12px;border:1px solid var(--line);background:#fff;height:36px;padding:0 12px;color:#1f2430
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.accent{border-color:#dfe3ff;background:#f6f7ff;color:#2b2d6b}
+    .btn.danger{border-color:#ffd9dd;background:#fff4f5;color:#7e2a2a}
+
+    .list{
+      border:1px dashed #d9deea;border-radius:12px;padding:14px;min-height:180px;max-height:calc(100vh - 260px);
+      overflow:auto;background:#e2e2e2
+    }
+    .item{
+      display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+      background:#fff;border:1px solid transparent;border-radius:12px;padding:12px;margin:18px 4px;
+      transition:.15s; min-height:68px;
+    }
+    .item.dragging{opacity:.6}
+    .item.selected{
+      border-color: var(--accent);
+      background:#f6f7ff;
+      box-shadow: 0 0 0 2px rgba(94,118,250,.12) inset;
+    }
+    .handle{cursor:grab;padding:6px 10px;color:#8b93a7}
+    .name{font-weight:600}
+    .note{font-size:12px;color:var(--muted)}
+    .mini{font-size:12px;color:#8b93a7}
+
+    /* Права колонка: форма */
+    .form{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+      padding:14px
+    }
+    .grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:12px
+    }
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:#4b5162}
+    .field input, .field select, .field textarea{
+      border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;outline:none;background:#fff
+    }
+    .field textarea{min-height:110px;resize:vertical}
+
+    .subtle{font-size:12px;color:var(--muted)}
+    .hr{height:1px;background:var(--line);margin:10px 0}
+
+    /* Media список */
+    .media-wrap{display:flex;flex-direction:column;gap:10px}
+    .media-item{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafbff}
+    .media-grid{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start}
+    .media-preview{
+      border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:80px;display:flex;align-items:center;justify-content:center;background:#fff
+    }
+    .media-preview img{max-width:100%;max-height:120px;display:block}
+    .media-preview .yt{width:100%;aspect-ratio:16/9;background:#000;background-size:cover;background-position:center}
+    .media-fields{display:grid;grid-template-columns:1fr;gap:8px}
+    .media-row{display:grid;grid-template-columns:150px 1fr auto;gap:8px}
+    .media-row .src{width:100%}
+    .media-row .caption{width:100%}
+    .btn.small{height:30px;border-radius:10px;padding:0 10px}
+
+    /* Model preview */
+    .mv-wrap{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafbff}
+    model-viewer{width:100%;height:240px;background:#0e1117;border-radius:10px}
+    .glb-actions{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+    /* Попап прив’язки */
+    .overlay{position:fixed;inset:0;background:rgba(13,16,24,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:60}
+    .overlay.show{display:flex}
+    .geo-modal{
+      width:min(1100px,96vw);height:min(760px,92vh);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+      display:grid;grid-template-rows:auto 1fr auto;overflow:hidden
+    }
+    .geo-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+    .geo-body{display:grid;grid-template-columns:1fr 340px;gap:0;height:100%}
+    #geoMap{position:relative}
+    #geoMap > div{position:absolute;inset:0}
+    .geo-side{border-left:1px solid var(--line);padding:10px;overflow:auto}
+    .ctrl{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:10px}
+    .ctrl input[type="range"]{width:100%}
+    .ctrl input[type="number"]{width:100px}
+    .geo-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:10px}
+    .kbd{font-family:ui-monospace,Menlo,monospace;background:#eef1fb;border:1px solid #dfe3ff;border-radius:8px;padding:2px 6px;font-size:12px}
+
+    .toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #ffdcdc;color:#7a2626;padding:8px 12px;border-radius:10px;box-shadow:var(--shadow);display:none;z-index:80}
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+
+<!-- АВТОРИЗАЦИЯ -->
+<div id="auth" class="auth" aria-modal="true" role="dialog">
+  <div class="auth-card">
+    <h2>Вхід до адмінки</h2>
+    <div class="auth-row">
+      <label for="authUser">Логін</label>
+      <input id="authUser" type="text" autocomplete="username" placeholder="Логін">
+    </div>
+    <div class="auth-row">
+      <label for="authPass">Пароль</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="Пароль">
+    </div>
+    <div class="auth-actions">
+      <button id="authBtn" class="auth-btn primary">Увійти</button>
+      <span id="authErr" class="auth-err">Невірний логін або пароль</span>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header><b>Адмінка</b> — Історичні будівлі Дніпра
+<a href="/index.html" class="go-site" title="Повернутися на сайт">
+  <span class="material-symbols-outlined">home</span>
+</a>
+</header>
+
+  <div class="main">
+    <!-- Ліва панель: список -->
+    <aside class="panel">
+      <div class="row">
+        <button id="btnAdd" class="btn accent">Додати будівлю</button>
+        <button id="btnDelete" class="btn danger">Видалити вибрану</button>
+        <button id="btnExport" class="btn">Експорт buildings.js</button>
+        <span class="subtle">Перетягніть елементи для зміни черги</span>
+      </div>
+      <div id="list" class="list"></div>
+    </aside>
+
+    <!-- Права панель: форма -->
+    <section class="form">
+      <div class="grid">
+        <div class="field">
+          <label for="fId">ID (унікальний, латиниця/цифри/—)</label>
+          <input id="fId" type="text" placeholder="napr. potemkin">
+        </div>
+        <div></div>
+
+        <div class="field">
+          <label for="fName">Назва</label>
+          <input id="fName" type="text" placeholder="Потьомкінський палац">
+        </div>
+        <div class="field">
+          <label for="fNote">Примітка</label>
+          <input id="fNote" type="text" placeholder="Локація / короткий опис">
+        </div>
+
+        <div class="field">
+          <label for="fLng">Довгота (lng)</label>
+          <input id="fLng" type="number" step="0.000001">
+        </div>
+        <div class="field">
+          <label for="fLat">Широта (lat)</label>
+          <input id="fLat" type="number" step="0.000001">
+        </div>
+
+        <div class="field">
+          <label for="fAlt">Висота (alt, м)</label>
+          <input id="fAlt" type="number" step="1">
+        </div>
+        <div class="field">
+          <label for="fScale">Scale</label>
+          <input id="fScale" type="number" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="fRotX">rotX</label>
+          <input id="fRotX" type="number" step="1">
+        </div>
+        <div class="field">
+          <label for="fRotY">rotY</label>
+          <input id="fRotY" type="number" step="1">
+        </div>
+        <div class="field">
+          <label for="fRotZ">rotZ</label>
+          <input id="fRotZ" type="number" step="1">
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label for="fModel">GLB-модель (відносний шлях)</label>
+          <input id="fModel" type="text" placeholder="models/EnglishClub.glb">
+          <div class="mv-wrap" id="mvWrap" style="margin-top:8px; display:none">
+            <model-viewer id="mv" camera-controls auto-rotate touch-action="pan-y" exposure="1.0" shadow-intensity="0"></model-viewer>
+            <div class="glb-actions">
+              <button id="btnGeo" class="btn accent" title="Прив’язати на мапі" style="display:none">Прив’язати</button>
+              <span class="subtle">Попередній перегляд GLB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Аудіо -->
+        <div class="field">
+          <label for="fAudioSrc">Аудіо (mp3 / wav, відносний шлях)</label>
+          <input id="fAudioSrc" type="text" placeholder="audio/potemkin.mp3">
+        </div>
+        <div class="field">
+          <label for="fAudioTxt">Транскрипт</label>
+          <textarea id="fAudioTxt" placeholder="Текст озвучення…"></textarea>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <div class="subtle">Прев’ю аудіо</div>
+          <audio id="audioPreview" controls style="width:100%"></audio>
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label for="fInfo">Опис / HTML</label>
+          <textarea id="fInfo" placeholder="<p>Опис будівлі…</p>"></textarea>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row" style="justify-content:space-between">
+        <div class="subtle">Медіа</div>
+        <button id="btnAddMedia" class="btn small">Додати медіа</button>
+      </div>
+      <div id="mediaList" class="media-wrap"></div>
+    </section>
+  </div>
+
+  <footer>ДНЛІТ 2025</footer>
+</div>
+
+<!-- Попап прив’язки -->
+<div id="geoOverlay" class="overlay" role="dialog" aria-modal="true">
+  <div class="geo-modal">
+    <div class="geo-head">
+      <div><b>Прив’язка моделі</b> <span class="subtle">— клік або <span class="kbd">Shift</span> + перетяг для позиції</span></div>
+      <button id="geoClose" class="btn">Скасувати</button>
+    </div>
+    <div class="geo-body">
+      <div id="geoMap"><div id="geoMapCanvas"></div></div>
+      <div class="geo-side">
+        <div class="ctrl"><label>Довгота</label><input id="geoLng" type="number" step="0.000001"></div>
+        <div class="ctrl"><label>Широта</label><input id="geoLat" type="number" step="0.000001"></div>
+        <div class="ctrl"><label>Висота (м)</label><input id="geoAlt" type="number" step="1"></div>
+        <div class="hr"></div>
+        <div class="ctrl"><label>Scale</label><input id="geoScaleNum" type="number" step="0.1"></div>
+        <div class="ctrl"><label>Scale (повзунок)</label><input id="geoScale" type="range" min="0.1" max="100" step="0.1"></div>
+        <div class="ctrl"><label>rotX</label><input id="geoRotXNum" type="number" step="1"></div>
+        <div class="ctrl"><label>rotX (повзунок)</label><input id="geoRotX" type="range" min="-360" max="360" step="1"></div>
+        <div class="ctrl"><label>rotY</label><input id="geoRotYNum" type="number" step="1"></div>
+        <div class="ctrl"><label>rotY (повзунок)</label><input id="geoRotY" type="range" min="-360" max="360" step="1"></div>
+        <div class="ctrl"><label>rotZ</label><input id="geoRotZNum" type="number" step="1"></div>
+        <div class="ctrl"><label>rotZ (повзунок)</label><input id="geoRotZ" type="range" min="-360" max="360" step="1"></div>
+        <div class="hr"></div>
+        <div class="row" style="gap:8px">
+          <button id="geoTop" class="btn small">План</button>
+          <button id="geoIso" class="btn small">Ізометрія</button>
+          <button id="geoApply" class="btn accent" style="margin-left:auto">Застосувати</button>
+        </div>
+      </div>
+    </div>
+    <div class="geo-foot">
+      <div class="subtle">Підказка: утримуйте <span class="kbd">Shift</span> та перетягуйте для точного вибору місця.</div>
+      <div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ====== Авторизация (SHA-256 + config.js) ====== */
+const AUTH_CFG = (window.APP_CONFIG && window.APP_CONFIG.adminAuth) || null;
+const authEl = document.getElementById('auth');
+const appEl  = document.getElementById('app');
+const authUser = document.getElementById('authUser');
+const authPass = document.getElementById('authPass');
+const authBtn  = document.getElementById('authBtn');
+const authErr  = document.getElementById('authErr');
+
+async function sha256Hex(str) {
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const enc = new TextEncoder().encode(str);
+      const buf = await window.crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) { /* ignore and fallback */ }
+  return sha256HexFallback(str);
+}
+
+// Чисто JS SHA-256 (UTF-8). Повертає hex-рядок.
+function sha256HexFallback(str) {
+  // UTF-8 кодування (працює і без TextEncoder)
+  var ascii = unescape(encodeURIComponent(str));
+
+  function rightRotate(v, a){ return (v>>>a) | (v<<(32-a)); }
+  var maxWord = Math.pow(2, 32), i, j, result = '';
+  var words = [], hash = [], k = [];
+  var primeCounter = 0;
+
+  function isPrime(n){ for (var f=2; f*f<=n; f++) if (n%f===0) return false; return true; }
+  function fracBits(n){ return ((n - (n|0)) * maxWord) | 0; }
+
+  for (var candidate=2; primeCounter<64; candidate++){
+    if (isPrime(candidate)) {
+      if (primeCounter < 8) hash[primeCounter] = fracBits(Math.pow(candidate, 1/2));
+      k[primeCounter++] = fracBits(Math.pow(candidate, 1/3));
+    }
+  }
+
+  ascii += '\x80';
+  while (ascii.length % 64 - 56) ascii += '\x00';
+
+  var l = ascii.length;
+  var asciiWords = [];
+  for (i=0; i<l; i++) {
+    var c = ascii.charCodeAt(i);
+    asciiWords[i>>2] |= c << ((3 - i) % 4) * 8;
+  }
+  asciiWords[asciiWords.length] = (l * 8 / maxWord) | 0;
+  asciiWords[asciiWords.length] = (l * 8);
+
+  for (j=0; j<asciiWords.length; ) {
+    var w = words.slice(0, 64);
+    for (i=0; i<16; i++, j++) w[i] = asciiWords[j] | 0;
+    for (i=16; i<64; i++) {
+      var s0 = rightRotate(w[i-15],7) ^ rightRotate(w[i-15],18) ^ (w[i-15]>>>3);
+      var s1 = rightRotate(w[i-2],17) ^ rightRotate(w[i-2],19) ^ (w[i-2]>>>10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+    }
+    var a=hash[0], b=hash[1], c=hash[2], d=hash[3], e=hash[4], f=hash[5], g=hash[6], h=hash[7];
+    for (i=0; i<64; i++) {
+      var S1 = rightRotate(e,6) ^ rightRotate(e,11) ^ rightRotate(e,25);
+      var ch = (e & f) ^ (~e & g);
+      var t1 = (h + S1 + ch + k[i] + w[i]) | 0;
+      var S0 = rightRotate(a,2) ^ rightRotate(a,13) ^ rightRotate(a,22);
+      var maj = (a & b) ^ (a & c) ^ (b & c);
+      var t2 = (S0 + maj) | 0;
+      h=g; g=f; f=e; e=(d + t1) | 0;
+      d=c; c=b; b=a; a=(t1 + t2) | 0;
+    }
+    hash[0]=(hash[0]+a)|0; hash[1]=(hash[1]+b)|0; hash[2]=(hash[2]+c)|0; hash[3]=(hash[3]+d)|0;
+    hash[4]=(hash[4]+e)|0; hash[5]=(hash[5]+f)|0; hash[6]=(hash[6]+g)|0; hash[7]=(hash[7]+h)|0;
+  }
+
+  for (i=0; i<8; i++) {
+    for (j=3; j+1; j--) {
+      var b = (hash[i] >> (j * 8)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+async function doLogin(){
+  authErr.classList.remove('show');
+  if(!AUTH_CFG || !AUTH_CFG.userHash || !AUTH_CFG.passHash){
+    authErr.textContent = 'Авторизацію не налаштовано в config.js'; authErr.classList.add('show'); return;
+  }
+  const u = authUser.value.trim();
+  const p = authPass.value;
+  const uh = await sha256Hex(u);
+  const ph = await sha256Hex(p);
+  if(uh === AUTH_CFG.userHash && ph === AUTH_CFG.passHash){
+    sessionStorage.setItem('adminOK', '1');
+    authEl.style.display = 'none';
+    appEl.classList.remove('hidden');
+    initApp(); // запускаем админку
+  }else{
+    authErr.textContent = 'Невірний логін або пароль';
+    authErr.classList.add('show');
+
+//BYPASS!!!!!!!!!!!!!!!!!
+    sessionStorage.setItem('adminOK', '1');
+    authEl.style.display = 'none';
+    appEl.classList.remove('hidden');
+    initApp(); // запускаем админку
+  }
+}
+authBtn?.addEventListener('click', doLogin);
+authUser?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+authPass?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+if(sessionStorage.getItem('adminOK') === '1'){
+  authEl.style.display = 'none';
+  appEl.classList.remove('hidden');
+  initApp();
+}
+
+/* ====== Вся логика админки внутри initApp() ====== */
+function initApp(){
+(function(){
+  const $ = (s,root=document)=>root.querySelector(s);
+  const listEl = $('#list');
+
+  // форма
+  const fId=$('#fId'), fName=$('#fName'), fNote=$('#fNote');
+  const fLng=$('#fLng'), fLat=$('#fLat'), fAlt=$('#fAlt');
+  const fScale=$('#fScale'), fRotX=$('#fRotX'), fRotY=$('#fRotY'), fRotZ=$('#fRotZ');
+  const fModel=$('#fModel'), fInfo=$('#fInfo');
+
+  const fAudioSrc = $('#fAudioSrc');
+  const fAudioTxt = $('#fAudioTxt');
+  const audioPreview = $('#audioPreview');
+
+  const btnAdd=$('#btnAdd'), btnDelete=$('#btnDelete'), btnExport=$('#btnExport');
+
+  const mvWrap=$('#mvWrap'); const mv=$('#mv'); const btnGeo=$('#btnGeo');
+
+  const mediaListEl=$('#mediaList'); const btnAddMedia=$('#btnAddMedia');
+
+  const toast=$('#toast');
+  function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 2500); }
+
+  // дані
+  let data = Array.isArray(window.BUILDINGS) ? JSON.parse(JSON.stringify(window.BUILDINGS)) : [];
+  let selectedIndex = -1;
+
+  // mapbox token
+  mapboxgl.accessToken = (window.config && window.config.accessToken) || '';
+
+  // ===== РЕНДЕР СПИСКУ (dnd + подсветка выбранного) =====
+  function renderList(){
+    listEl.innerHTML='';
+    data.forEach((b,i)=>{
+      const it=document.createElement('div');
+      it.className='item'; it.draggable=true; it.dataset.index=i;
+      if (i === selectedIndex) it.classList.add('selected');
+      it.innerHTML=`
+        <div class="handle">≡</div>
+        <div><div class="name">${b.name||'(без назви)'}</div><div class="note">${b.note||''}</div></div>
+        <div class="mini">${b.id||''}</div>
+      `;
+      it.addEventListener('click',()=>selectIndex(i));
+      it.addEventListener('dragstart',(e)=>{ it.classList.add('dragging'); e.dataTransfer.setData('text/plain', String(i)); });
+      it.addEventListener('dragend',()=>it.classList.remove('dragging'));
+      listEl.appendChild(it);
+    });
+  }
+  renderList();
+
+  // dragover/drop на контейнер
+  listEl.addEventListener('dragover',(e)=>{ e.preventDefault(); });
+  listEl.addEventListener('drop',(e)=>{
+    e.preventDefault();
+    const from = Number(e.dataTransfer.getData('text/plain'));
+    if (!Number.isInteger(from)) return;
+
+    const items=[...listEl.querySelectorAll('.item')];
+    if (items.length===0) return;
+
+    const y=e.clientY;
+    let to=items.length;
+    for (let i=0;i<items.length;i++){
+      const r=items[i].getBoundingClientRect();
+      const mid=r.top + r.height/2;
+      if (y < mid){ to=i; break; }
+    }
+    if (from < to) to = to - 1;
+    if (to<0) to=0;
+
+    if (from===to) return;
+    const moved = data.splice(from,1)[0];
+    data.splice(to,0,moved);
+
+    const keep = moved;
+    renderList();
+    selectedIndex = data.indexOf(keep);
+    selectIndex(selectedIndex);
+  });
+
+  function blankForm(){
+    fId.value=fName.value=fNote.value='';
+    fLng.value=fLat.value=fAlt.value=fScale.value=fRotX.value=fRotY.value=fRotZ.value='';
+    fModel.value=fInfo.value='';
+    fAudioSrc.value=''; fAudioTxt.value=''; audioPreview.src='';
+    mvWrap.style.display='none'; mv.src=''; btnGeo.style.display='none';
+    mediaListEl.innerHTML='';
+  }
+
+  function markSelectedInList(){
+    const nodes = listEl.querySelectorAll('.item');
+    nodes.forEach((n,idx)=> n.classList.toggle('selected', idx===selectedIndex));
+  }
+
+  function selectIndex(i){
+    selectedIndex=i;
+    const b=data[i]; if(!b){ blankForm(); markSelectedInList(); return; }
+
+    fId.value=b.id||''; fName.value=b.name||''; fNote.value=b.note||'';
+    fLng.value=(b.lng??''); fLat.value=(b.lat??''); fAlt.value=(b.alt??'');
+    fScale.value=(b.scale??''); fRotX.value=(b.rotX??''); fRotY.value=(b.rotY??''); fRotZ.value=(b.rotZ??'');
+    fModel.value=b.modelUrl||''; fInfo.value=b.infoHtml||'';
+
+    // audio
+    const au=b.audio||{};
+    fAudioSrc.value = au.src || '';
+    fAudioTxt.value = au.transcript || '';
+    audioPreview.src = au.src ? (au.src + '?t='+Date.now()) : '';
+
+    updateModelViewer();
+    renderMedia(b.media||[]);
+    markSelectedInList();
+  }
+
+  // ===== МЕДІА =====
+  function renderMedia(arr){
+    mediaListEl.innerHTML='';
+    arr.forEach((m,idx)=>{
+      const item=document.createElement('div'); item.className='media-item';
+      const prev=document.createElement('div'); prev.className='media-preview';
+      const fields=document.createElement('div'); fields.className='media-fields';
+      const grid=document.createElement('div'); grid.className='media-grid';
+      grid.appendChild(prev); grid.appendChild(fields);
+
+      const typeSel=document.createElement('select');
+      ['image','youtube'].forEach(t=>{ const o=document.createElement('option'); o.value=t;o.textContent=t; if((m.type||'image')===t)o.selected=true; typeSel.appendChild(o); });
+
+      const initialId = (m.type==='youtube') ? (m.videoId || m.src || '') : (m.src || '');
+      const srcIn=document.createElement('input'); srcIn.type='text';
+      srcIn.placeholder=(m.type==='youtube')?'YouTube ID (наприклад: dQw4w9WgXcQ)':'media/01.jpg';
+      srcIn.value=initialId; srcIn.className='src';
+
+      const capIn=document.createElement('input'); capIn.type='text'; capIn.placeholder='Підпис до медіа'; capIn.value=m.caption||''; capIn.className='caption';
+
+      const row=document.createElement('div'); row.className='media-row';
+      row.appendChild(typeSel); row.appendChild(srcIn);
+      const delBtn=document.createElement('button'); delBtn.className='btn small danger'; delBtn.textContent='Видалити';
+      delBtn.addEventListener('click',()=>{ const b=data[selectedIndex]; b.media.splice(idx,1); renderMedia(b.media); });
+      row.appendChild(delBtn);
+
+      fields.appendChild(row); fields.appendChild(capIn);
+
+      function updatePrev(){
+        prev.innerHTML='';
+        const t=typeSel.value.trim();
+        const val=srcIn.value.trim();
+        if(!val) return;
+        if(t==='image'){
+          const img=document.createElement('img'); img.src=val+'?t='+Date.now(); prev.appendChild(img);
+        }else{
+          const thumb=document.createElement('div'); thumb.className='yt';
+          const vid = val;
+          thumb.style.backgroundImage=`url(https://img.youtube.com/vi/${vid}/hqdefault.jpg)`; 
+          prev.appendChild(thumb);
+        }
+      }
+      updatePrev();
+
+      typeSel.addEventListener('change',()=>{
+        const b=data[selectedIndex]; if(!b.media)b.media=[];
+        b.media[idx].type = typeSel.value;
+
+        if (typeSel.value==='youtube'){
+          b.media[idx].videoId = srcIn.value.trim() || b.media[idx].videoId || '';
+          delete b.media[idx].src;
+          srcIn.placeholder = 'YouTube ID (наприклад: dQw4w9WgXcQ)';
+        } else {
+          b.media[idx].src = srcIn.value.trim() || b.media[idx].src || '';
+          delete b.media[idx].videoId;
+          srcIn.placeholder = 'media/01.jpg';
+        }
+        updatePrev();
+      });
+
+      srcIn.addEventListener('input',()=>{
+        const b=data[selectedIndex]; if(!b.media)b.media=[];
+        if (typeSel.value==='youtube'){
+          b.media[idx].videoId = srcIn.value.trim();
+        }else{
+          b.media[idx].src = srcIn.value.trim();
+        }
+        updatePrev();
+      });
+
+      capIn.addEventListener('input',()=>{ const b=data[selectedIndex]; if(!b.media)b.media=[]; b.media[idx].caption=capIn.value; });
+
+      item.appendChild(grid);
+      mediaListEl.appendChild(item);
+    });
+  }
+
+  btnAddMedia.addEventListener('click',()=>{
+    const b=data[selectedIndex]; if(!b) return;
+    if(!Array.isArray(b.media)) b.media=[];
+    b.media.push({type:'image',src:'media/01.jpg',caption:''});
+    renderMedia(b.media);
+  });
+
+  // ===== додати/видалити/експорт =====
+  btnAdd.addEventListener('click',()=>{
+    const id='bld_'+Math.random().toString(36).slice(2,8);
+    data.push({ id, name:'Нова будівля', note:'',
+      lng:35.0460, lat:48.4647, alt:8, scale:10, rotX:0, rotY:0, rotZ:0,
+      modelUrl:'', infoHtml:'', media:[], audio:{src:'', transcript:''}
+    });
+    renderList(); selectIndex(data.length-1);
+  });
+
+  btnDelete.addEventListener('click',()=>{
+    if(selectedIndex<0) return;
+    const name=data[selectedIndex].name||data[selectedIndex].id||'об’єкт';
+    if(!confirm(`Видалити «${name}»?`)) return;
+    data.splice(selectedIndex,1);
+    renderList(); if(data.length) selectIndex(Math.max(0,selectedIndex-1)); else{selectedIndex=-1; blankForm();}
+  });
+
+  btnExport.addEventListener('click', ()=>{
+    const normalized = data.map(b => {
+      const media = (b.media || []).map(m => {
+        if ((m.type || 'image') === 'youtube') {
+          const vid = (m.videoId || m.src || '').trim();
+          return { type: 'youtube', videoId: vid, caption: m.caption || '' };
+        } else {
+          return { type: 'image', src: (m.src || '').trim(), caption: m.caption || '' };
+        }
+      });
+
+      const audio = b.audio && (b.audio.src || b.audio.transcript)
+        ? { src: b.audio.src || '', transcript: b.audio.transcript || '' }
+        : undefined;
+
+      const out = {
+        id: b.id || '',
+        name: b.name || '',
+        note: b.note || '',
+        lng: Number(b.lng),
+        lat: Number(b.lat),
+        alt: Number(b.alt) || 0,
+        infoHtml: b.infoHtml || '',
+        media
+      };
+      if (b.modelUrl) out.modelUrl = b.modelUrl;
+      if (Number.isFinite(b.scale)) out.scale = Number(b.scale);
+      if (Number.isFinite(b.rotX)) out.rotX = Number(b.rotX);
+      if (Number.isFinite(b.rotY)) out.rotY = Number(b.rotY);
+      if (Number.isFinite(b.rotZ)) out.rotZ = Number(b.rotZ);
+      if (audio) out.audio = audio;
+
+      return out;
+    });
+
+    const js = 'window.BUILDINGS = ' + JSON.stringify(normalized, null, 2) + ';\n';
+    const blob = new Blob([js], { type: 'application/javascript;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'buildings.js';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    showToast('Експортовано buildings.js');
+  });
+
+  // ===== зв’язок форми з даними =====
+  [fId,fName,fNote,fLng,fLat,fAlt,fScale,fRotX,fRotY,fRotZ,fModel,fInfo].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const b=data[selectedIndex]; if(!b) return;
+      b.id=fId.value.trim(); b.name=fName.value; b.note=fNote.value;
+      b.lng=parseFloat(fLng.value); b.lat=parseFloat(fLat.value); b.alt=parseFloat(fAlt.value);
+      b.scale=parseFloat(fScale.value); b.rotX=parseFloat(fRotX.value); b.rotY=parseFloat(fRotY.value); b.rotZ=parseFloat(fRotZ.value);
+      b.modelUrl=fModel.value.trim(); b.infoHtml=fInfo.value;
+
+      // audio sync
+      b.audio = b.audio || {};
+      b.audio.src = fAudioSrc.value.trim();
+      b.audio.transcript = fAudioTxt.value;
+
+      // list live labels
+      const nodes=listEl.querySelectorAll('.item'); const node=nodes[selectedIndex];
+      if(node){ node.querySelector('.name').textContent=b.name||'(без назви)'; node.querySelector('.note').textContent=b.note||''; node.querySelector('.mini').textContent=b.id||''; }
+
+      updateModelViewer();
+      audioPreview.src = b.audio.src ? (b.audio.src + '?t='+Date.now()) : '';
+    });
+  });
+  fAudioSrc.addEventListener('input', ()=>{
+    const b=data[selectedIndex]; if(!b) return;
+    b.audio = b.audio || {};
+    b.audio.src = fAudioSrc.value.trim();
+    audioPreview.src = b.audio.src ? (b.audio.src + '?t='+Date.now()) : '';
+  });
+  fAudioTxt.addEventListener('input', ()=>{
+    const b=data[selectedIndex]; if(!b) return;
+    b.audio = b.audio || {};
+    b.audio.transcript = fAudioTxt.value;
+  });
+
+  // ===== <model-viewer> =====
+  let mvLoadedOk=false;
+  function updateModelViewer(){
+    const url=fModel.value.trim();
+    if(!url){ mvLoadedOk=false; mvWrap.style.display='none'; mv.src=''; btnGeo.style.display='none'; return; }
+    mvWrap.style.display='block'; mvLoadedOk=false; mv.src=url;
+  }
+  mv?.addEventListener('load',()=>{ mvLoadedOk=true; btnGeo.style.display=''; mv.autoRotate = true; });
+  mv?.addEventListener('error',()=>{ mvLoadedOk=false; btnGeo.style.display='none'; });
+
+  // ===== попап прив’язки =====
+  const geoOverlay=$('#geoOverlay');
+  const geoMapEl=$('#geoMapCanvas');
+  const geoApply=$('#geoApply');
+  const geoTop=$('#geoTop');
+  const geoIso=$('#geoIso');
+
+  const geoLng=$('#geoLng'), geoLat=$('#geoLat'), geoAlt=$('#geoAlt');
+  const geoScale=$('#geoScale'), geoScaleNum=$('#geoScaleNum');
+  const geoRotX=$('#geoRotX'), geoRotXNum=$('#geoRotXNum');
+  const geoRotY=$('#geoRotY'), geoRotYNum=$('#geoRotYNum');
+  const geoRotZ=$('#geoRotZ'), geoRotZNum=$('#geoRotZNum');
+
+  function syncScaleUI(v){ geoScale.value=String(v); geoScaleNum.value=String(v); }
+  function syncRotUI(x,y,z){ geoRotX.value=x; geoRotXNum.value=x; geoRotY.value=y; geoRotYNum.value=y; geoRotZ.value=z; geoRotZNum.value=z; }
+  function num(v,d=0){ v=Number(v); return isFinite(v)?v:d; }
+  function degClamp(v){ v=Number(v); if(!isFinite(v)) v=0; while(v>360) v-=360; while(v<-360) v+=360; return v; }
+  function clampScale(s){ s=Number(s); if(!isFinite(s)) s=1; return Math.min(1000, Math.max(0.001, s)); }
+
+  let geoMap=null, geoTb=null, geoObj=null;
+  let tbBackup=null, transformRAF=null, transformState=null, reCreateTimer=null, mvSrcBackup=null;
+
+  function openGeo(){
+    if(selectedIndex<0) return;
+    const b=data[selectedIndex];
+    if(!mvLoadedOk || !b.modelUrl){ showToast('Спочатку завантажте коректну GLB-модель.'); return; }
+
+    geoOverlay.classList.add('show');
+
+    // «усипляємо» model-viewer (звільняємо WebGL)
+    if(mv){ mvSrcBackup = mv.src || null; try{ mv.src=''; }catch(e){} }
+
+    geoMap = new mapboxgl.Map({
+      container: geoMapEl,
+      style:'mapbox://styles/mapbox/satellite-streets-v12',
+      center:[ num(b.lng,35.0460), num(b.lat,48.4647) ],
+      zoom:(b.lng&&b.lat)?17:14.5, pitch:60, bearing:10, antialias:false, fadeDuration:0, attributionControl:false
+    });
+    geoMap.addControl(new mapboxgl.NavigationControl({visualizePitch:true}),'top-right');
+    geoMap.getCanvas().addEventListener('webglcontextlost',(e)=>{e.preventDefault();});
+    geoMap.getCanvas().addEventListener('webglcontextrestored',()=>{geoMap.triggerRepaint();});
+
+    geoTb = new Threebox(geoMap, geoMap.getCanvas().getContext('webgl'), { defaultLights:false });
+    geoTb.scene.children = geoTb.scene.children.filter(o=>!o.isLight);
+    geoTb.scene.add(new THREE.AmbientLight(0xffffff,0.9));
+    geoTb.renderer.shadowMap.enabled=false;
+
+    tbBackup = window.tb; window.tb = geoTb;
+
+    const init = {
+      lng:num(b.lng,35.0460), lat:num(b.lat,48.4647), alt:num(b.alt,8),
+      sc:clampScale(b.scale??10), rx:degClamp(b.rotX??0), ry:degClamp(b.rotY??0), rz:degClamp(b.rotZ??0)
+    };
+    geoLng.value=init.lng.toFixed(6); geoLat.value=init.lat.toFixed(6); geoAlt.value=String(init.alt);
+    syncScaleUI(init.sc); syncRotUI(init.rx,init.ry,init.rz);
+
+    geoMap.on('style.load',()=>{
+      if(!geoMap.getLayer('tb-layer')){
+        geoMap.addLayer({id:'tb-layer',type:'custom',renderingMode:'3d',onAdd:()=>{},render:()=>{geoTb&&geoTb.update();}});
+      }
+      geoTb.loadObj(
+        {type:'gltf', obj:b.modelUrl, scale:init.sc, units:'meters', rotation:{x:init.rx,y:init.ry,z:init.rz}, anchor:'center'},
+        (obj)=>{ geoObj=obj; obj.setCoords([init.lng,init.lat,init.alt]); geoTb.add(obj); geoMap.triggerRepaint(); },
+        (err)=>console.error(err)
+      );
+    });
+
+    function softReattach(){ if(!geoTb||!geoObj) return; try{ geoTb.remove(geoObj); geoTb.add(geoObj);}catch(e){} }
+    function scheduleLazyRecreate(current){
+      if(reCreateTimer){ clearTimeout(reCreateTimer); reCreateTimer=null; }
+      reCreateTimer=setTimeout(()=>{
+        if(!geoTb||!geoMap||!geoObj) return;
+        try{ geoTb.remove(geoObj);}catch(e){}
+        geoTb.loadObj(
+          {type:'gltf', obj:current.url, scale:current.tr.scale, units:'meters', rotation:{x:current.tr.rx,y:current.tr.ry,z:current.tr.rz}, anchor:'center'},
+          (obj)=>{ geoObj=obj; obj.setCoords([current.tr.lng,current.tr.lat,current.tr.alt]); geoTb.add(obj); geoMap.triggerRepaint(); },
+          (err)=>console.error(err)
+        );
+      }, 220);
+    }
+    function scheduleTransform(next){
+      transformState = Object.assign(transformState||{}, next);
+      if(transformRAF) return;
+      transformRAF = requestAnimationFrame(()=>{
+        transformRAF=null;
+        if(!geoObj||!geoTb){ transformState=null; return; }
+        const st=transformState; transformState=null;
+
+        let lng,lat,alt,rx,ry,rz,sc;
+        if(st.coords){ lng=num(st.coords[0]); lat=num(st.coords[1]); alt=num(st.coords[2]); }
+        if(st.rotation){ rx=degClamp(st.rotation.x); ry=degClamp(st.rotation.y); rz=degClamp(st.rotation.z); }
+        if(typeof st.scale==='number'){ sc=clampScale(st.scale); }
+
+        try{
+          if(st.coords) geoObj.setCoords([lng,lat,alt]);
+          if(st.rotation || typeof st.scale==='number'){
+            const patch={}; if(st.rotation) patch.rotation={x:rx,y:ry,z:rz};
+            if(typeof sc==='number') patch.scale=sc;
+            geoObj.set(patch);
+          }
+        }catch(e){ softReattach(); }
+
+        const base = geoObj._obj||geoObj; if(base && base.visible===false){ base.visible=true; softReattach(); }
+        geoTb.update && geoTb.update(); geoMap.triggerRepaint();
+
+        scheduleLazyRecreate({
+          url:(data[selectedIndex]||{}).modelUrl,
+          tr:{
+            lng: st.coords?lng:num(geoLng.value),
+            lat: st.coords?lat:num(geoLat.value),
+            alt: st.coords?alt:num(geoAlt.value),
+            rx:  st.rotation?rx:degClamp(geoRotXNum.value),
+            ry:  st.rotation?ry:degClamp(geoRotYNum.value),
+            rz:  st.rotation?rz:degClamp(geoRotZNum.value),
+            scale: (typeof sc==='number')?sc:clampScale(geoScaleNum.value)
+          }
+        });
+      });
+    }
+
+    // перетяг із Shift
+    let dragging=false;
+    geoMap.on('mousedown',(e)=>{ if(!e.originalEvent.shiftKey) return; dragging=true; geoMap.getCanvas().style.cursor='grabbing'; });
+    geoMap.on('mousemove',(e)=>{
+      if(!dragging||!geoObj) return;
+      const ll=e.lngLat; geoLng.value=ll.lng.toFixed(6); geoLat.value=ll.lat.toFixed(6);
+      scheduleTransform({coords:[ll.lng,ll.lat,num(geoAlt.value,0)]});
+    });
+    geoMap.on('mouseup',()=>{dragging=false; geoMap.getCanvas().style.cursor='';});
+    geoMap.on('click',(e)=>{
+      if(!geoObj) return;
+      const ll=e.lngLat; geoLng.value=ll.lng.toFixed(6); geoLat.value=ll.lat.toFixed(6);
+      scheduleTransform({coords:[ll.lng,ll.lat,num(geoAlt.value,0)]});
+    });
+
+    function onTransInputs(){
+      if(!geoObj) return;
+      scheduleTransform({
+        coords:[ num(geoLng.value,0), num(geoLat.value,0), num(geoAlt.value,0) ],
+        rotation:{ x:degClamp(geoRotXNum.value), y:degClamp(geoRotYNum.value), z:degClamp(geoRotZNum.value) },
+        scale: clampScale(geoScaleNum.value)
+      });
+    }
+    [geoLng,geoLat,geoAlt,geoScale,geoScaleNum,geoRotX,geoRotXNum,geoRotY,geoRotYNum,geoRotZ,geoRotZNum].forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        if (inp===geoScale) geoScaleNum.value=geoScale.value;
+        if (inp===geoScaleNum) geoScale.value=geoScaleNum.value;
+        if (inp===geoRotX) geoRotXNum.value=geoRotX.value;
+        if (inp===geoRotXNum) geoRotX.value=geoRotXNum.value;
+        if (inp===geoRotY) geoRotYNum.value=geoRotY.value;
+        if (inp===geoRotYNum) geoRotY.value=geoRotYNum.value;
+        if (inp===geoRotZ) geoRotZNum.value=geoRotZ.value;
+        if (inp===geoRotZNum) geoRotZ.value=geoRotZNum.value;
+        onTransInputs();
+      });
+    });
+
+    geoTop.addEventListener('click',()=>{ geoMap.easeTo({center:[num(geoLng.value,init.lng),num(geoLat.value,init.lat)],zoom:18,pitch:0,bearing:0,duration:500}); });
+    geoIso.addEventListener('click',()=>{ geoMap.easeTo({center:[num(geoLng.value,init.lng),num(geoLat.value,init.lat)],zoom:17,pitch:60,bearing:20,duration:500}); });
+  }
+
+  function closeGeo(){
+    if (tbBackup!==null){ window.tb=tbBackup; tbBackup=null; } else { delete window.tb; }
+    if (document.getElementById('geoMapCanvas')){
+      try{
+        // карта уничтожается в openGeo при remove()
+      }catch(e){}
+    }
+    geoMap=null; geoTb=null; geoObj=null;
+    if (reCreateTimer){ clearTimeout(reCreateTimer); reCreateTimer=null; }
+    transformRAF=null; transformState=null;
+
+    // повертаємо model-viewer і крутимо
+    if (mv){
+      if (mvSrcBackup!==null){ try{ mv.src = mvSrcBackup; }catch(e){} mvSrcBackup=null; }
+      mv.setAttribute('auto-rotate','');
+      const once = ()=>{ mv.autoRotate = true; mv.removeEventListener('load', once); };
+      mv.addEventListener('load', once);
+    }
+
+    document.getElementById('geoOverlay').classList.remove('show');
+  }
+
+  btnGeo.addEventListener('click', openGeo);
+  document.getElementById('geoClose').addEventListener('click', closeGeo);
+  document.getElementById('geoApply').addEventListener('click', ()=>{
+    if (selectedIndex<0) return;
+    const b=data[selectedIndex];
+    b.lng=parseFloat(document.getElementById('geoLng').value);
+    b.lat=parseFloat(document.getElementById('geoLat').value);
+    b.alt=parseFloat(document.getElementById('geoAlt').value);
+    b.scale=parseFloat(document.getElementById('geoScaleNum').value);
+    b.rotX=parseFloat(document.getElementById('geoRotXNum').value);
+    b.rotY=parseFloat(document.getElementById('geoRotYNum').value);
+    b.rotZ=parseFloat(document.getElementById('geoRotZNum').value);
+    fLng.value=b.lng; fLat.value=b.lat; fAlt.value=b.alt;
+    fScale.value=b.scale; fRotX.value=b.rotX; fRotY.value=b.rotY; fRotZ.value=b.rotZ;
+    closeGeo();
+  });
+  document.getElementById('geoOverlay').addEventListener('click',(e)=>{ if(e.target===document.getElementById('geoOverlay')) closeGeo(); });
+  window.addEventListener('keydown',(e)=>{ if(document.getElementById('geoOverlay').classList.contains('show') && e.key==='Escape') closeGeo(); });
+
+  // старт
+  if (data.length) selectIndex(0);
+})();
+} // end initApp
+</script>
+</body>
+</html>
