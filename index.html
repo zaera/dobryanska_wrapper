@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <title>Історичні будівлі Дніпра — мапа з Threebox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Mapbox GL JS (локальные файлы) -->
+  <link href="css/mapbox-gl.css" rel="stylesheet">
+  <script src="js/mapbox-gl.js"></script>
+
+  <!-- Threebox (локальные файлы) -->
+  <script src="js/threebox.js" type="text/javascript"></script>
+  <link href="css/threebox.css" rel="stylesheet" />
+
+  <!-- Токен -->
+  <script src="config.js"></script>
+
+  <!-- Wavesurfer -->
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+
+  <!-- TWEEN.js -->
+  <script src="js/tween.umd.js"></script>
+
+  <!-- Данные зданий -->
+  <script src="buildings.js"></script>
+
+  <!-- Шрифты / иконки -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#4d4d4d;
+      --paper:#ffffff;
+      --ink:#101928;
+      --muted:#6c7480;
+      --line:#e9ecf2;
+      --accent:#5e76fa;
+      --shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
+      --radius:20px;
+      --sb-w:340px;
+    }
+    body.sb-collapsed{ --sb-w:88px; }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif}
+    #app{display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}
+
+    /* === LOADER (белый экран с гифкой) === */
+    .loader{position:fixed; inset:0; background:#fff; display:none; align-items:center; justify-content:center; z-index:9999;}
+    .loader.show{display:flex;}
+    .loader img{width:96px;height:96px;}
+
+    /* === Header === */
+    header{
+      height:64px;display:flex;align-items:center;justify-content:center;
+      background:var(--paper);box-shadow:var(--shadow);border-bottom:1px solid var(--line);
+      position:sticky;top:0;z-index:5
+    }
+    header h1{margin:0;font-size:18px;letter-spacing:.2px;font-weight:700}
+
+    /* === Layout === */
+    .main{
+      display:grid;grid-template-columns:var(--sb-w) 1fr;gap:16px;padding:16px;
+      transition:grid-template-columns .25s ease;
+    }
+    @media (max-width: 960px){ .main{grid-template-columns:1fr} }
+
+    /* === Sidebar === */
+    #sidebar{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+      box-shadow:var(--shadow);height:calc(100vh - 64px - 64px - 32px);
+      padding:14px;position:relative;overflow:hidden;
+    }
+    .sb-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .toggle{
+      position:absolute;top:5px;right:14px;display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;border-radius:12px;border:2px solid var(--line);background:#fbfcff;cursor:pointer;
+      box-shadow:var(--shadow)
+    }
+    .toggle .material-symbols-outlined{font-size:20px}
+    .search{display:flex;align-items:center;gap:8px;background:#fbfcff;border:1px solid var(--line);
+      border-radius:14px;padding:10px 12px;margin:6px 0 12px}
+    .search input{border:none;outline:none;background:transparent;width:100%;font-size:14px;color:var(--ink)}
+    .list{position:absolute;inset:100px 14px 14px 14px;overflow:auto;border-radius:14px;padding-right:2px}
+    .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;
+      border:1px solid transparent;transition:background .15s,border-color .15s, transform .05s}
+    .item:hover{background:#f4f6ff;border-color:#e4e8ff}
+    .item:active{transform:translateY(1px)}
+    .item .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(94,118,250,.15)}
+    .item .name{font-size:14px;font-weight:600}
+    .item .desc{font-size:12px;color:var(--muted)}
+    #sidebar.collapsed .search, #sidebar.collapsed .sb-title, #sidebar.collapsed .desc{display:none}
+    #sidebar.collapsed .item{justify-content:center}
+    #sidebar.collapsed .item .name{display:none}
+    #sidebar.collapsed .item .dot{margin:2px}
+
+    /* === Map card === */
+    .map-card{
+      position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
+      background:var(--paper);border:2px solid var(--line);height:calc(100vh - 64px - 64px - 32px)
+    }
+    #map{position:absolute;inset:0}
+
+    /* === Footer === */
+    footer{
+      height:64px;display:flex;align-items:center;justify-content:center;background:var(--paper);
+      border-top:1px solid var(--line);box-shadow:var(--shadow)
+    }
+    footer .foot{font-size:13px;color:var(--muted);letter-spacing:.4px}
+
+    /* Marker */
+    .mk{
+      width:18px;height:18px;border-radius:50%;background:var(--accent);
+      box-shadow:0 0 0 6px rgba(94,118,250,.18), 0 6px 18px rgba(0,0,0,.15);
+      border:2px solid #fff; cursor:pointer;
+    }
+
+    /* === POPUP: плавные открытия/закрытия, увеличенный размер === */
+    .overlay{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(14,17,22,.56);
+      backdrop-filter:saturate(110%) blur(2px);
+
+      opacity:0; visibility:hidden; pointer-events:none;
+      transition:
+        opacity .55s ease,
+        visibility 0s linear .55s;
+      z-index:20; /* аудио-виджет сверху (z:60) */
+    }
+    .overlay.show{
+      opacity:1; visibility:visible; pointer-events:auto;
+      transition: opacity .70s ease;
+    }
+
+    .modal{
+      width:min(980px, 94vw);
+      max-height:min(88vh, 1000px);
+      overflow:auto;
+
+      background:#fff; color:#101928;
+      border:1px solid #e9ecf2;
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px 22px 18px;
+
+      transform: translateY(14px) scale(.985);
+      opacity:0;
+      transition:
+        transform .70s cubic-bezier(.22,.61,.36,1),
+        opacity .70s ease;
+    }
+    .overlay.show .modal{
+      transform:none;
+      opacity:1;
+    }
+    .modal h2{ margin:0 0 6px 0; font-size:20px; }
+    .modal .muted{ color:#6c7480; font-size:13px; margin-bottom:10px; }
+    .modal .body{ font-size:14px; line-height:1.55; }
+    .modal .close{ position:absolute; right:10px; top:10px; width:34px; height:34px; border-radius:12px;
+      display:inline-flex; align-items:center; justify-content:center; border:1px solid #e9ecf2; background:#fbfcff; cursor:pointer; }
+    .modal .close .material-symbols-outlined{ font-size:22px; color:#6c7480; }
+
+    /* === Галерея === */
+    .gallery{ display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+    .g-viewport{ position:relative; width:100%; aspect-ratio:16/9; background:#0d1117; border-radius:14px; overflow:hidden; }
+    .g-viewport img, .g-viewport iframe{ width:100%; height:100%; object-fit:cover; display:block; border:0; }
+    .g-prev, .g-next{
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:40px; height:40px; border-radius:12px; border:1px solid #e9ecf2; background:#ffffffda;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+    .g-prev{ left:10px; } .g-next{ right:10px; }
+    .g-prev .material-symbols-outlined, .g-next .material-symbols-outlined{ font-size:22px; color:#333; }
+    .g-caption{ font-size:13px; color:#6c7480; padding:0 2px; }
+    .g-dots{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+    .g-dot{ width:9px; height:9px; border-radius:50%; background:#d7dcf6; border:0; cursor:pointer; }
+    .g-dot.active{ background:#5e76fa; }
+
+    /* === Переключатель стиля карты === */
+    .style-toggle.mapboxgl-ctrl{ background:#fff; border:1px solid #e9ecf2; border-radius:12px; box-shadow:var(--shadow); }
+    .style-toggle button{
+      width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+      background:#fff; border:0; cursor:pointer; border-radius:12px;
+    }
+    .style-toggle .material-symbols-outlined{ font-size:22px; color:#444; }
+
+    /* === Аудио-виджет (внутри карты, правый-низ) === */
+    .narration{
+      position:absolute; right:12px; bottom:12px; z-index:60;
+      width:340px; max-width:calc(100% - 24px);
+      background:transparent; border:0; display:none;
+    }
+    .narration.show{display:block;}
+
+    /* «Пилюля»-плеер */
+    .nar-player{
+      display:flex; align-items:center; gap:10px;
+      padding:8px 12px; background:#fff; border:1px solid var(--line);
+      border-radius:9999px; box-shadow:var(--shadow);
+    }
+    .nar-btn{
+      width:36px; height:36px; border-radius:50%;
+      background:#fff; color:#444; cursor:pointer;
+      border:1px solid #B0B8C5;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nar-btn .material-symbols-outlined{font-size:22px;}
+    .nar-wave-wrap{flex:1; height:40px; overflow:hidden; border-radius:9999px;}
+    #narWave{height:100%;}
+
+    .nar-bottom{ display:flex; justify-content:flex-end; padding:8px 4px 6px 4px; }
+    .nar-trans-btn{
+      border:1px solid var(--line); background:#fff; color:#444; cursor:pointer;
+      border-radius:10px; padding:6px 10px; font-size:12px;
+    }
+    .nar-transcript{
+      display:none; padding:10px 12px; line-height:1.55; font-size:13px; color:#333;
+      max-height:160px; overflow:auto; border:1px solid var(--line); border-radius:12px;
+      background:#fbfcff;
+    }
+    .nar-transcript.show{display:block;}
+
+    @media (max-width:560px){
+      .narration{ right:8px; bottom:8px; width:auto; left:8px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- LOADER -->
+  <div id="loader" class="loader"><img src="loading.gif" alt="Loading…"></div>
+
+  <!-- OVERLAY (попап) -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button id="ovClose" class="close" title="Закрыть"><span class="material-symbols-outlined">close</span></button>
+      <h2 id="ovTitle">Будівля</h2>
+      <div id="ovSub" class="muted"></div>
+      <div id="ovBody" class="body"></div>
+    </div>
+  </div>
+
+  <header><h1>Історичні будівлі Дніпра</h1></header>
+
+  <div class="main">
+    <aside id="sidebar">
+      <button class="toggle" id="btnToggle" title="Згорнути/Розгорнути">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <div class="sb-head"><div class="sb-title" style="font-weight:700;">Забудова</div></div>
+      <div class="search">
+        <span class="material-symbols-outlined" style="font-size:20px;color:var(--muted)">search</span>
+        <input id="search" type="text" placeholder="Пошук будівлі…" />
+      </div>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <section class="map-card">
+      <div id="map"></div>
+
+      <!-- Аудио-виджет -->
+      <div id="narration" class="narration" aria-live="polite">
+        <div class="nar-player">
+          <button id="narPlay" class="nar-btn" title="Відтворити/Пауза">
+            <span id="narIcon" class="material-symbols-outlined">play_arrow</span>
+          </button>
+          <div class="nar-wave-wrap"><div id="narWave"></div></div>
+        </div>
+        <div class="nar-bottom">
+          <button id="narTranscriptBtn" class="nar-trans-btn">Показати транскрипцію</button>
+        </div>
+        <div id="narTranscript" class="nar-transcript"></div>
+      </div>
+      <!-- /Аудио-виджет -->
+    </section>
+  </div>
+
+  <footer><div class="foot">ДНЛІТ 2025</div></footer>
+</div>
+
+<script>
+(function(){
+  const $ = (s, root=document)=>root.querySelector(s);
+  const listEl = $('#list'); const searchEl = $('#search');
+  const overlay = $('#overlay'); const ovTitle = $('#ovTitle');
+  const ovSub = $('#ovSub'); const ovBody = $('#ovBody');
+  const ovClose = $('#ovClose'); const sidebar = $('#sidebar');
+  const main = document.querySelector('.main'); const btnToggle = $('#btnToggle');
+  const loader = $('#loader');
+
+  // ==== ДАНІ/КОНФІГ ====
+  const buildings = (window.BUILDINGS || []).slice();
+  const APP = window.APP_CONFIG || {};
+  const MAPCFG = APP.map || {};
+  mapboxgl.accessToken = APP.accessToken || (window.config && window.config.accessToken) || '';
+
+  // ==== КАРТА ====
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: MAPCFG.styleA || 'mapbox://styles/mapbox/satellite-streets-v12',
+    center: MAPCFG.center || [35.0460, 48.4647],
+    zoom: MAPCFG.zoom ?? 14.5,
+    pitch: MAPCFG.pitch ?? 50,
+    bearing: MAPCFG.bearing ?? 10,
+    antialias: true,
+    attributionControl: true
+  });
+  map.addControl(new mapboxgl.NavigationControl({ visualizePitch:true }), 'top-right');
+
+  // Переключатель стиля
+  class StyleToggleControl {
+    onAdd(map){
+      this._map = map;
+      this._el = document.createElement('div');
+      this._el.className = 'mapboxgl-ctrl style-toggle';
+
+      const btn = document.createElement('button');
+      const icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'satellite_alt';
+      btn.appendChild(icon);
+      btn.title = 'Переключити стиль: супутник/карта';
+      btn.addEventListener('click', ()=> this.toggle());
+
+      this._btn = btn; this._icon = icon;
+      this._el.appendChild(btn);
+      this._current = 'A';
+      return this._el;
+    }
+    onRemove(){ this._el.remove(); this._map = undefined; }
+    toggle(){
+      const nextKey = this._current === 'A' ? 'B' : 'A';
+      const nextStyle = nextKey === 'A' ? MAPCFG.styleA : MAPCFG.styleB;
+      this._current = nextKey;
+      this._icon.textContent = (nextKey === 'A') ? 'satellite_alt' : 'map';
+      if (nextStyle) this._map.setStyle(nextStyle);
+    }
+  }
+  map.addControl(new StyleToggleControl(), 'top-left');
+
+  // ==== THREEBOX ====
+  window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), { defaultLights: true });
+
+  function syncTbViewport(){
+    if (!tb || !tb.renderer || !tb.camera) return;
+    const canvas = map.getCanvas();
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+    tb.renderer.setPixelRatio(dpr);
+    tb.renderer.setSize(w, h, false);
+    tb.camera.aspect = (h === 0) ? 1 : (w/h);
+    tb.camera.updateProjectionMatrix();
+    tb.update && tb.update();
+  }
+  map.on('resize', syncTbViewport);
+
+  // світло
+  tb.scene.children = tb.scene.children.filter(obj => !(obj.isLight));
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55); tb.scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff7e8, 1.1); sun.position.set(100,200,300);
+  sun.castShadow = true; sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
+  sun.shadow.radius = 8; sun.shadow.bias = -0.0005; tb.scene.add(sun);
+  const hemi = new THREE.HemisphereLight(0xe0eaff, 0x888888, 0.25); tb.scene.add(hemi);
+  tb.renderer.shadowMap.enabled = true; tb.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // слой threebox (terrain выключен)
+  let tbLayerReady = false, inited = false;
+  map.on('style.load', ()=>{
+    if (!map.getLayer('tb-layer')) {
+      map.addLayer({ id:'tb-layer', type:'custom', renderingMode:'3d', onAdd:()=>{}, render:()=>{ tb && tb.update(); }});
+    }
+    tbLayerReady = true;
+    syncTbViewport();
+    initOnce();
+  });
+
+  // ==== маркери/моделі + LOADER ====
+  const markers = new Map();
+  const models  = new Map();
+  const totalToLoad = buildings.filter(b=>b.modelUrl).length;
+  let loadedCount = 0;
+  if (totalToLoad > 0) loader.classList.add('show');
+
+  function checkLoaded(){
+    if (loadedCount >= totalToLoad) loader.classList.remove('show');
+  }
+
+  function upsertMarker(b){
+    if (markers.has(b.id)) return markers.get(b.id);
+    const el = document.createElement('div');
+    el.className = 'mk';
+    const marker = new mapboxgl.Marker({ element: el, offset: [0, -24] })
+      .setLngLat([b.lng, b.lat])
+      .addTo(map);
+    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); setNarration(b); openOverlay(b); });
+    markers.set(b.id, marker);
+    return marker;
+  }
+
+  function ensureModel(b){
+    if(!b.modelUrl || models.has(b.id) || !tbLayerReady) return;
+    tb.loadObj(
+      { type:'gltf', obj:b.modelUrl, scale:b.scale||8, units:'meters',
+        rotation:{x:b.rotX||0,y:b.rotY||0,z:b.rotZ||0}, anchor:'center' },
+      (obj)=>{
+        obj.setCoords([b.lng,b.lat,b.alt||8]);
+        obj.userData.buildingId = b.id;
+        obj.addTooltip(b.name, true);
+        tb.add(obj);
+        models.set(b.id,obj);
+        loadedCount++; checkLoaded();
+      },
+      (err)=>{
+        console.error(err);
+        loadedCount++; checkLoaded();
+      }
+    );
+  }
+
+  // ==== плавний політ (TWEEN) ====
+  (function rafLoop(time){ TWEEN.update(time); requestAnimationFrame(rafLoop); })();
+  function shortestBearing(from, to){ let diff = ((to - from + 540) % 360) - 180; return from + diff; }
+  let currentTween = null;
+  function tweenToBuilding(b, opts={}){
+    const start = { lng: map.getCenter().lng, lat: map.getCenter().lat, zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() };
+    const target = { lng: b.lng, lat: b.lat, zoom: opts.zoom ?? 16.5, pitch: opts.pitch ?? 60, bearing: shortestBearing(start.bearing, opts.bearing ?? map.getBearing()) };
+    if (currentTween) currentTween.stop();
+    currentTween = new TWEEN.Tween(start)
+      .to(target, opts.duration ?? 1600)
+      .easing(opts.easing ?? TWEEN.Easing.Quadratic.InOut)
+      .onUpdate(v=> map.jumpTo({ center:[v.lng, v.lat], zoom:v.zoom, pitch:v.pitch, bearing:v.bearing }))
+      .start();
+  }
+  function focusBuilding(b){ upsertMarker(b); ensureModel(b); tweenToBuilding(b, { duration: 1600 }); }
+
+  // первинна ініціалізація
+  function initOnce(){
+    if (inited || !tbLayerReady) return;
+    buildings.forEach(upsertMarker);
+    buildings.forEach(ensureModel);
+    inited = true;
+    syncTbViewport();
+    checkLoaded();
+  }
+
+  // ==== список у сайдбарі ====
+  function renderList(filter=''){
+    listEl.innerHTML='';
+    const q = filter.trim().toLowerCase();
+    buildings
+      .filter(b => !q || b.name.toLowerCase().includes(q) || (b.note||'').toLowerCase().includes(q))
+      .forEach(b=>{
+        const row = document.createElement('div');
+        row.className='item';
+        row.innerHTML = `<div class="dot"></div>
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <div class="name">${b.name}</div>
+            <div class="desc">${b.note||''}</div>
+          </div>`;
+        row.addEventListener('click', ()=>{ focusBuilding(b); setNarration(b); }); // без попапа
+        listEl.appendChild(row);
+      });
+  }
+  renderList();
+  searchEl.addEventListener('input', e=>renderList(e.target.value));
+
+  // ==== Галерея/модалка ====
+  let galleryKeyHandler = null;
+
+  function buildGallery(media){
+    const wrap = document.createElement('div');
+    wrap.className = 'gallery';
+    const viewport = document.createElement('div'); viewport.className = 'g-viewport';
+    const caption = document.createElement('div'); caption.className = 'g-caption';
+    const dotsWrap = document.createElement('div'); dotsWrap.className = 'g-dots';
+    const btnPrev = document.createElement('button'); btnPrev.className = 'g-prev'; btnPrev.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+    const btnNext = document.createElement('button'); btnNext.className = 'g-next'; btnNext.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+
+    let ix = 0, dots = [];
+
+    function nodeFor(item){
+      if (item.type === 'youtube'){
+        const ifr = document.createElement('iframe');
+        ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        ifr.referrerPolicy = 'strict-origin-when-cross-origin';
+        ifr.allowFullscreen = true;
+        ifr.src = `https://www.youtube.com/embed/${item.videoId}?rel=0&modestbranding=1`;
+        return ifr;
+      } else {
+        const img = document.createElement('img');
+        img.src = item.src; img.alt = item.caption || '';
+        return img;
+      }
+    }
+
+    function show(n){
+      ix = (n + media.length) % media.length;
+      viewport.innerHTML = '';
+      viewport.appendChild(nodeFor(media[ix]));
+      caption.textContent = media[ix].caption || '';
+      dots.forEach((d,i)=> d.classList.toggle('active', i===ix));
+    }
+
+    media.forEach((m, i)=>{
+      const dot = document.createElement('button');
+      dot.className = 'g-dot'; dot.addEventListener('click', ()=> show(i));
+      dotsWrap.appendChild(dot); dots.push(dot);
+    });
+
+    btnPrev.addEventListener('click', ()=> show(ix-1));
+    btnNext.addEventListener('click', ()=> show(ix+1));
+
+    viewport.appendChild(btnPrev); viewport.appendChild(btnNext);
+    wrap.appendChild(viewport);
+    if (media.length > 1) wrap.appendChild(dotsWrap);
+    wrap.appendChild(caption);
+    show(0);
+
+    return { el: wrap };
+  }
+
+  function openOverlay(b){
+    ovTitle.textContent = b.name;
+    ovSub.textContent = b.note || '';
+    ovBody.innerHTML = '';
+
+    if (Array.isArray(b.media) && b.media.length){
+      const { el } = buildGallery(b.media);
+      ovBody.appendChild(el);
+    }
+    const info = document.createElement('div');
+    info.innerHTML = b.infoHtml || '';
+    info.style.marginTop = '10px';
+    ovBody.appendChild(info);
+
+    // мягкий fade-in (делает CSS)
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    galleryKeyHandler = (e)=>{ if (e.key === 'Escape') closeOverlay(); };
+    window.addEventListener('keydown', galleryKeyHandler);
+  }
+
+  function closeOverlay(){
+    // мягкий fade-out (делает CSS)
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+
+    if (galleryKeyHandler){
+      window.removeEventListener('keydown', galleryKeyHandler);
+      galleryKeyHandler = null;
+    }
+
+    // останавливаем видео в попапе
+    ovBody.querySelectorAll('iframe').forEach(ifr => { try { ifr.src = ifr.src; } catch(e){} });
+  }
+
+  ovClose.addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeOverlay(); });
+
+  // Клік по 3D-моделі → попап + аудіо
+  const raycaster = new THREE.Raycaster();
+  map.on('click', (e)=>{
+    if (models.size === 0) return;
+    const canvas = map.getCanvas();
+    const mouse = new THREE.Vector2(
+      ( e.point.x / canvas.clientWidth ) * 2 - 1,
+      -( e.point.y / canvas.clientHeight ) * 2 + 1
+    );
+    raycaster.setFromCamera(mouse, tb.camera);
+    const objs = Array.from(models.values());
+    const hits = raycaster.intersectObjects(objs, true);
+    if (hits.length){
+      let id=null, o=hits[0].object;
+      while (o && !o.userData?.buildingId) o = o.parent;
+      if (o && o.userData?.buildingId) id = o.userData.buildingId;
+      if (id){
+        const b = buildings.find(x=>x.id===id);
+        if (b){ setNarration(b); openOverlay(b); }
+      }
+    }
+  });
+
+  // Сворачивание сайдбара
+  btnToggle.addEventListener('click', ()=>{
+    sidebar.classList.toggle('collapsed');
+    document.body.classList.toggle('sb-collapsed');
+    btnToggle.querySelector('.material-symbols-outlined').textContent =
+      document.body.classList.contains('sb-collapsed') ? 'chevron_right' : 'chevron_left';
+    const onDone = ()=>{ map.resize(); syncTbViewport(); main.removeEventListener('transitionend', onDone); };
+    main.addEventListener('transitionend', onDone);
+  });
+
+  // ==== Аудио (WaveSurfer) ====
+  const nar = $('#narration');
+  const narPlay = $('#narPlay');
+  const narIcon = $('#narIcon');
+  const narWave = $('#narWave');
+  const narTranscript = $('#narTranscript');
+  const narTranscriptBtn = $('#narTranscriptBtn');
+
+  const ws = WaveSurfer.create({
+    container: narWave,
+    waveColor: '#c7d2fe',
+    progressColor: '#5e76fa',
+    cursorColor: '#8a90a8',
+    cursorWidth: 2,
+    height: 40,
+    barWidth: 4,
+    barGap: 1.2,
+    barRadius: 3,
+    responsive: true,
+    normalize: true,
+  });
+
+  ws.on('ready', ()=>{ narIcon.textContent = 'play_arrow'; });
+  ws.on('play',  ()=>{ narIcon.textContent = 'pause'; });
+  ws.on('pause', ()=>{ narIcon.textContent = 'play_arrow'; });
+  ws.on('finish',()=>{ narIcon.textContent = 'play_arrow'; });
+
+  narPlay.addEventListener('click', ()=>{
+    if (!ws.getDecodedData()) return;
+    ws.isPlaying() ? ws.pause() : ws.play();
+  });
+
+  narTranscriptBtn.addEventListener('click', ()=>{
+    const open = narTranscript.classList.toggle('show');
+    narTranscriptBtn.textContent = open ? 'Сховати транскрипцію' : 'Показати транскрипцію';
+  });
+
+  let currentAudioId = null;
+  function setNarration(b){
+    if (!b || !b.audio || !b.audio.src){
+      nar.classList.remove('show');
+      ws.empty(); currentAudioId = null;
+      return;
+    }
+    nar.classList.add('show');
+
+    // не перезагружаем, если это тот же объект — чтобы не обрывать проигрывание
+    if (currentAudioId === b.id && ws.getDecodedData()) {
+      narTranscript.textContent = b.audio.transcript || '';
+      return;
+    }
+
+    currentAudioId = b.id;
+    narTranscript.textContent = b.audio.transcript || '';
+    narTranscript.classList.remove('show');
+    narTranscriptBtn.textContent = 'Показати транскрипцію';
+
+    try { ws.load(b.audio.src); } catch(e){ console.error(e); }
+  }
+
+})();
+</script>
+</body>
+</html>
