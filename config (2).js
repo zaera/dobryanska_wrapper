@@ -10,8 +10,8 @@ window.APP_CONFIG = {
   accessToken: window.config.accessToken,
   map: {
     // два стиля между которыми переключаемся
-    styleA: 'mapbox://styles/mapbox/satellite-streets-v12', // Спутник
-    styleB: 'mapbox://styles/mapbox/streets-v12',           // Карта (OSM-производный стиль Mapbox)
+    styleA: 'mapbox://styles/mapbox/satellite-v9', // Спутник
+    styleB: 'mapbox://styles/mapbox/dark-v11',              // Карта (OSM-производный стиль Mapbox)
 
     // стартовое положение камеры
     center: [35.0460, 48.4647],
