@@ -30,17 +30,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
   <style>
-    :root{
-      --bg:#d7d7d7;
-      --paper:#ffffff;
-      --ink:#101928;
-      --muted:#6c7480;
-      --line:#fff;
-      --accent:#5e76fa;
-      --shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
-      --radius:20px;
-      --sb-w:340px;
-    }
+      :root {
+          --bg: #1A1A1A;
+          --paper: #222526;
+          --ink: #d7d7d7;
+          --muted: #6c7480;
+          --line: #fff;
+          --accent: #b6bec5;
+          --shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
+          --radius: 10px;
+          --sb-w: 340px;
+      }
 
     /* Кнопка входа / админки в правом углу хедера */
       .user-btn {
@@ -55,7 +55,7 @@
           align-items: center;
           justify-content: center;
           border: 1px solid var(--line);
-          background: #6b6b6b;
+          background: #d7d7d7;
           color: #000000;
           box-shadow: var(--shadow);
           text-decoration: none;
@@ -82,7 +82,7 @@
       background:var(--paper);box-shadow:var(--shadow);border-bottom:1px solid var(--line);
       position:sticky;top:0;z-index:5
     }
-    header h1{margin:0;font-size:18px;letter-spacing:.2px;font-weight:700}
+    header h1{margin:0;font-size:18px;letter-spacing:.2px;font-weight:700; color: #d7d7d7}
 
     /* === Layout === */
     .main{
@@ -165,7 +165,7 @@
       max-height:min(88vh, 1000px);
       overflow:auto;
 
-      background:#6b6b6b; color:#101928;
+      background:#d7d7d7; color:#101928;
       border:1px solid #fff;
       border-radius:24px;
       box-shadow:var(--shadow);
@@ -205,14 +205,14 @@
     .g-dot.active{ background:#5e76fa; }
 
     /* === Переключатель стиля карты === */
-    .style-toggle.mapboxgl-ctrl{ background:#6b6b6b; border:1px solid #fff; border-radius:12px; box-shadow:var(--shadow); }
+    .style-toggle.mapboxgl-ctrl{ background:#d7d7d7; border:1px solid #fff; border-radius:12px; box-shadow:var(--shadow); }
       .style-toggle button {
           width: 40px;
           height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #6b6b6b;
+          background: #d7d7d7;
           border: 0;
           cursor: pointer;
           border-radius: 12px;
@@ -230,13 +230,13 @@
     /* «Пилюля»-плеер */
     .nar-player{
       display:flex; align-items:center; gap:10px;
-      padding:8px 12px; background:#6b6b6b; border:1px solid var(--line);
+      padding:8px 12px; background:#1A1A1A; border:1px solid var(--line);
       border-radius:9999px; box-shadow:var(--shadow);
     }
     .nar-btn{
       width:36px; height:36px; border-radius:50%;
-      background:#6b6b6b; color:#444; cursor:pointer;
-      border:1px solid #B0B8C5;
+      background:#353A3E; color:#d7d7d7; cursor:pointer;
+      border:1px solid #353A3E;
       display:flex; align-items:center; justify-content:center;
     }
     .nar-btn .material-symbols-outlined{font-size:22px;}
@@ -245,13 +245,13 @@
 
     .nar-bottom{ display:flex; justify-content:flex-end; padding:8px 4px 6px 4px; }
     .nar-trans-btn{
-      border:1px solid var(--line); background:#6b6b6b; color:#444; cursor:pointer;
+      border:1px solid var(--line); background:#353A3E; color:#d7d7d7; cursor:pointer;
       border-radius:10px; padding:6px 10px; font-size:12px;
     }
     .nar-transcript{
       display:none; padding:10px 12px; line-height:1.55; font-size:13px; color:#333;
       max-height:160px; overflow:auto; border:1px solid var(--line); border-radius:12px;
-      background:#fbfcff;
+      background:#d7d7d7;
     }
     .nar-transcript.show{display:block;}
 
@@ -286,10 +286,11 @@
       <button class="toggle" id="btnToggle" title="Згорнути/Розгорнути">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
-      <div class="sb-head"><div class="sb-title" style="font-weight:700;">Забудова</div></div>
+      <div class="sb-head"><div class="sb-title" style="font-weight: 700; color: #d7d7d7;">Забудова</div></div>
       <div class="search">
-        <span class="material-symbols-outlined" style="font-size:20px;color:var(--muted)">search</span>
-        <input id="search" type="text" placeholder="Пошук будівлі…" />
+          <span class="material-symbols-outlined" style="font-size:20px; color:#353A3E; ">search</span>
+          <input id="search" type="text" style="color: #353A3E;" placeholder="Пошук будівлі…" />
+
       </div>
       <div class="list" id="list"></div>
     </aside>
@@ -342,7 +343,7 @@
     pitch: MAPCFG.pitch ?? 50,
     bearing: MAPCFG.bearing ?? 10,
     antialias: true,
-    attributionControl: true
+    attributionControl: false
   });
   map.addControl(new mapboxgl.NavigationControl({ visualizePitch:true }), 'top-right');
 

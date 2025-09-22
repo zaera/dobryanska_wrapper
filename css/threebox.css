@@ -20,7 +20,7 @@ body {
 
 .help {
 	background: rgba(0, 0, 0, 0.5);
-	color: #2e2e2e;
+	color: #e0e0e0;
 	position: relative;
 	text-align: center;
 	top: 10px;
@@ -73,6 +73,6 @@ body {
 }
 
 #toolsControl.mapboxgl-ctrl-group button + button, #toolsControl.mapboxgl-ctrl-group div + div {
-	border-left: 1px solid #ddd;
+	border-left: 1px solid #e0e0e0;
 	border-top: 0px;
 }
