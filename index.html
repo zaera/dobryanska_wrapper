@@ -34,7 +34,7 @@
           --bg: #1A1A1A;
           --paper: #222526;
           --ink: #d7d7d7;
-          --muted: #868e99;
+          --muted: #6c7480;
           --line: #fff;
           --accent: #b6bec5;
           --shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
@@ -110,7 +110,7 @@
     .list{position:absolute;inset:100px 14px 14px 14px;overflow:auto;border-radius:14px;padding-right:2px}
     .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;
       border:1px solid transparent;transition:background .15s,border-color .15s, transform .05s}
-    .item:hover{background:#353a3e;border-color:#e4e8ff}
+    .item:hover{background:#f4f6ff;border-color:#e4e8ff}
     .item:active{transform:translateY(1px)}
     .item .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(150,150,150,.15)}
     .item .name{font-size:14px;font-weight:600}
@@ -145,7 +145,7 @@
     .overlay{
       position:fixed; inset:0;
       display:flex; align-items:center; justify-content:center;
-      background:rgba(26,26,26,.56);
+      background:rgba(14,17,22,.56);
       backdrop-filter:saturate(110%) blur(2px);
 
       opacity:0; visibility:hidden; pointer-events:none;
@@ -158,14 +158,14 @@
       opacity:1; visibility:visible; pointer-events:auto;
       transition: opacity .70s ease;
     }
-    /* === POPUP ЦВЕТА === */
+
     .modal{
       position: relative;
       width:min(980px, 94vw);
       max-height:min(88vh, 1000px);
       overflow:auto;
 
-      background:#1A1A1A; color:#fff;
+      background:#d7d7d7; color:#101928;
       border:1px solid #fff;
       border-radius:24px;
       box-shadow:var(--shadow);
@@ -182,15 +182,15 @@
       opacity:1;
     }
     .modal h2{ margin:0 0 6px 0; font-size:20px; }
-    .modal .muted{ color:var(--muted); font-size:13px; margin-bottom:10px; }
+    .modal .muted{ color:#6c7480; font-size:13px; margin-bottom:10px; }
     .modal .body{ font-size:14px; line-height:1.55; }
     .modal .close{ position:absolute; right:10px; top:10px; width:34px; height:34px; border-radius:12px;
-      display:inline-flex; align-items:center; justify-content:center; border:1px solid #fff; background:#fff; cursor:pointer; }
-    .modal .close .material-symbols-outlined{ font-size:22px; color:#353a3e; }
+      display:inline-flex; align-items:center; justify-content:center; border:1px solid #fff; background:#fbfcff; cursor:pointer; }
+    .modal .close .material-symbols-outlined{ font-size:22px; color:#6c7480; }
 
     /* === Галерея === */
     .gallery{ display:flex; flex-direction:column; gap:10px; margin-top:8px; }
-    .g-viewport{ position:relative; width:100%; aspect-ratio:16/9; background:#222526; border-radius:14px; overflow:hidden; }
+    .g-viewport{ position:relative; width:100%; aspect-ratio:16/9; background:#0d1117; border-radius:14px; overflow:hidden; }
     .g-viewport img, .g-viewport iframe{ width:100%; height:100%; object-fit:cover; display:block; border:0; }
     .g-prev, .g-next{
       position:absolute; top:50%; transform:translateY(-50%);
@@ -199,10 +199,10 @@
     }
     .g-prev{ left:10px; } .g-next{ right:10px; }
     .g-prev .material-symbols-outlined, .g-next .material-symbols-outlined{ font-size:22px; color:#333; }
-    .g-caption{ font-size:13px; color:var(--ink); padding:0 2px; } 
+    .g-caption{ font-size:13px; color:#6c7480; padding:0 2px; }
     .g-dots{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
-    .g-dot{ width:9px; height:11px; border-radius:50%; background:#353a3e; border:0; cursor:pointer; }
-    .g-dot.active{ background:#E0E0E0; }
+    .g-dot{ width:9px; height:9px; border-radius:50%; background:#d7dcf6; border:0; cursor:pointer; }
+    .g-dot.active{ background:#5e76fa; }
 
     /* === Переключатель стиля карты === */
     .style-toggle.mapboxgl-ctrl{ background:#d7d7d7; border:1px solid #fff; border-radius:12px; box-shadow:var(--shadow); }
@@ -641,9 +641,9 @@
 
   const ws = WaveSurfer.create({
     container: narWave,
-    waveColor: '#E0E0E0',
-    progressColor: '#353A3E',
-    cursorColor: '#BFBFBF',
+    waveColor: '#c7d2fe',
+    progressColor: '#5e76fa',
+    cursorColor: '#8a90a8',
     cursorWidth: 2,
     height: 40,
     barWidth: 4,
