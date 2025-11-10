@@ -41,11 +41,11 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-            header h1 {
-                font-size: 1.2rem;
-                color: var(--text-color);
-                font-weight: 500;
-            }
+        header h1 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
 
         button.login-btn {
             background: var(--bg-medium);
@@ -57,9 +57,9 @@
             transition: background 0.2s;
         }
 
-            button.login-btn:hover {
-                background: rgba(224, 224, 224, 0.2);
-            }
+        button.login-btn:hover {
+            background: rgba(224, 224, 224, 0.2);
+        }
 
         main {
             display: flex;
@@ -76,10 +76,10 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-            .sidebar h2 {
-                font-size: 1rem;
-                margin-bottom: 1rem;
-            }
+        .sidebar h2 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
 
         .building-item {
             background: var(--bg);
@@ -91,10 +91,10 @@
             text-overflow: ellipsis;
         }
 
-            .building-item:hover {
-                background: rgba(34, 37, 38, 0.6);
-                text-overflow: ellipsis;
-            }
+        .building-item:hover {
+            background: rgba(34, 37, 38, 0.6);
+            text-overflow: ellipsis;
+        }
 
         .map-container {
             flex: 1;
@@ -127,13 +127,13 @@
             padding: 0.5rem 1rem;
         }
 
-            .audio-control button {
-                background: none;
-                border: none;
-                color: var(--text-color);
-                cursor: pointer;
-                font-size: 1.5rem;
-            }
+        .audio-control button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
         /*  Scrollbar  */
         ::-webkit-scrollbar {
             width: 12px;
@@ -263,14 +263,14 @@
             z-index: 9999;
         }
 
-            .loader.show {
-                display: flex;
-            }
+        .loader.show {
+            display: flex;
+        }
 
-            .loader img {
-                width: 96px;
-                height: 96px;
-            }
+        .loader img {
+            width: 96px;
+            height: 96px;
+        }
 
         /* === Header === */
 
@@ -380,9 +380,9 @@
             box-shadow: var(--shadow)
         }
 
-            .toggle .material-symbols-outlined {
-                font-size: 20px
-            }
+        .toggle .material-symbols-outlined {
+            font-size: 20px
+        }
 
         .search {
             display: flex;
@@ -395,14 +395,14 @@
             margin: 6px 0 12px
         }
 
-            .search input {
-                border: none;
-                outline: none;
-                background: transparent;
-                width: 100%;
-                font-size: 14px;
-                color: var(--ink)
-            }
+        .search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            width: 100%;
+            font-size: 14px;
+            color: var(--ink)
+        }
 
         .list {
             position: absolute;
@@ -490,11 +490,11 @@
             box-shadow: var(--shadow)
         }
 
-            footer .foot {
-                font-size: 13px;
-                color: var(--muted);
-                letter-spacing: .4px
-            }
+        footer .foot {
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: .4px
+        }
 
         /* Marker */
         .mk {
@@ -663,9 +663,9 @@
             cursor: pointer;
         }
 
-            .g-dot.active {
-                background: var(--accent);
-            }
+        .g-dot.active {
+            background: var(--accent);
+        }
 
         /* === Перемикач стиля карти === */
         .style-toggle.mapboxgl-ctrl {
@@ -927,7 +927,7 @@
   });
   map.addControl(new mapboxgl.NavigationControl({ visualizePitch:true }), 'top-right');
 
-  // Переключатель стиля
+  // Переключатель стилю
   class StyleToggleControl {
     onAdd(map){
       this._map = map;
@@ -983,7 +983,7 @@
   const hemi = new THREE.HemisphereLight(0xe0eaff, 0x888888, 0); tb.scene.add(hemi);
   tb.renderer.shadowMap.enabled = true; tb.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  // слой threebox (terrain выключен)
+  // слой threebox (terrain вимкн)
   let tbLayerReady = false, inited = false;
   map.on('style.load', ()=>{
     if (!map.getLayer('tb-layer')) {
@@ -1084,7 +1084,7 @@
   renderList();
   searchEl.addEventListener('input', e=>renderList(e.target.value));
 
-  // ==== Галерея/модалка ====
+  // ==== Галерея/модал ====
   let galleryKeyHandler = null;
 
   function buildGallery(media){
@@ -1153,7 +1153,7 @@
     info.style.marginTop = '10px';
     ovBody.appendChild(info);
 
-    // мягкий fade-in (делает CSS)
+    // мягкий fade-in (CSS)
     overlay.classList.add('show');
     document.body.style.overflow = 'hidden';
 
@@ -1162,7 +1162,7 @@
   }
 
   function closeOverlay(){
-    // мягкий fade-out (делает CSS)
+    // мягкий fade-out (CSS)
     overlay.classList.remove('show');
     document.body.style.overflow = '';
 
@@ -1171,7 +1171,7 @@
       galleryKeyHandler = null;
     }
 
-    // останавливаем видео в попапе
+    // зупиняємо відео в попапі
     ovBody.querySelectorAll('iframe').forEach(ifr => { try { ifr.src = ifr.src; } catch(e){} });
   }
 
@@ -1201,7 +1201,7 @@
     }
   });
 
-  // Сворачивание сайдбара
+  // Згортання сайдбару
   btnToggle.addEventListener('click', ()=>{
     sidebar.classList.toggle('collapsed');
     document.body.classList.toggle('sb-collapsed');
@@ -1211,7 +1211,7 @@
     main.addEventListener('transitionend', onDone);
   });
 
-  // ==== Аудио (WaveSurfer) ====
+  // ==== Аудіо (WaveSurfer) ====
   const nar = $('#narration');
   const narPlay = $('#narPlay');
   const narIcon = $('#narIcon');
@@ -1257,7 +1257,7 @@
     }
     nar.classList.add('show');
 
-    // не перезагружаем, если это тот же объект — чтобы не обрывать проигрывание
+    // Не перезавантажуємо, якщо це той же об'ект — аби не обривати проігрування
     if (currentAudioId === b.id && ws.getDecodedData()) {
       narTranscript.textContent = b.audio.transcript || '';
       return;
