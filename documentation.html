@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документація у стані розробки</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/examples/js/loaders/GLTFLoader.js"></script>
+
+    <style>
+        :root {
+            --bg: #1A1A1A;
+            --paper: #222526;
+            --ink: #d7d7d7;
+            --accent: #E0E0E0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "e-Ukraine", "Inter", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(120deg, var(--bg), var(--paper), var(--bg));
+            background-size: 400% 400%;
+            animation: gradientMove 10s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink);
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Анімація завантаження */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+        }
+
+            .loading-screen.fade-out {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .loading-text {
+            font-size: calc(4vw + 20px);
+            font-weight: 600;
+            color: var(--accent);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .loading-text::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                animation: shimmer 2.5s infinite;
+            }
+
+        .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(30px) rotateX(90deg);
+            filter: blur(10px);
+        }
+
+        .word {
+            display: inline-block;
+            margin-right: 0.3em;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        @keyframes charAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) rotateX(90deg);
+                filter: blur(10px);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(-5px) rotateX(0deg);
+                filter: blur(0px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg);
+                filter: blur(0px);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            font-size: calc(4vw + 20px);
+            color: var(--accent);
+            z-index: 10;
+            position: relative;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+            user-select: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+
+            h1.fade-in {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 1s ease-out;
+        }
+
+            canvas.fade-in {
+                opacity: 1;
+            }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text" id="loadingText">Документація у стані розробки</div>
+    </div>
+
+    <h1 id="mainTitle">Документація у стані розробки</h1>
+    <canvas id="scene"></canvas>
+
+    <script>
+        // Функція для анімації тексту
+        function animateText() {
+            const loadingText = document.getElementById('loadingText');
+            const text = loadingText.textContent;
+            const words = text.split(' ');
+
+            loadingText.innerHTML = '';
+
+            words.forEach((word, wordIndex) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word';
+
+                for (let i = 0; i < word.length; i++) {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'char';
+                    charSpan.textContent = word[i];
+                    charSpan.style.animation = `charAppear 0.6s ease-out ${(wordIndex * 0.3 + i * 0.1)}s forwards`;
+                    wordSpan.appendChild(charSpan);
+                }
+
+                loadingText.appendChild(wordSpan);
+                // Додаємо пробіл між словами
+                if (wordIndex < words.length - 1) {
+                    loadingText.appendChild(document.createTextNode(' '));
+                }
+            });
+        }
+
+        // Запуск анімації
+        window.addEventListener('load', () => {
+            animateText();
+            completeLoading();
+        });
+        // Адаптація під розмір екрана
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
