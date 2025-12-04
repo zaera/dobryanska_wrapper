@@ -119,7 +119,7 @@ window.BUILDINGS = [
     "infoHtml": "",
     "media": [],
     "modelUrl": "models/Uchilische-Culturi.glb",
-    "scale": 1.3,
+    "scale": 1,
     "rotX": 90,
     "rotY": 320,
     "rotZ": 0
@@ -346,7 +346,7 @@ window.BUILDINGS = [
     "infoHtml": "",
     "media": [],
     "modelUrl": "models/First-Real-Uchilische.glb",
-    "scale": 1.3,
+    "scale": 1.4,
     "rotX": 90,
     "rotY": -218,
     "rotZ": 0
