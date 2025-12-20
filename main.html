@@ -997,7 +997,8 @@
   // ==== маркери/моделі + LOADER ====
   const markers = new Map();
   const models  = new Map();
-  const totalToLoad = buildings.filter(b=>b.modelUrl).length;
+  // Виключаємо фонову модель "Town-BG-Mirrored.glb" з підрахунку, бо вона завантажується окремо
+  const totalToLoad = buildings.filter(b => b.modelUrl && b.modelUrl !== "models/Town-BG-Mirrored.glb" && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').length;
   let loadedCount = 0;
   if (totalToLoad > 0) loader.classList.add('show');
 
@@ -1053,11 +1054,106 @@
   }
   function focusBuilding(b){ upsertMarker(b); ensureModel(b); tweenToBuilding(b, { duration: 1600 }); }
 
+  // завантаження фонового об'єкта (налаштування з "Нова будівля" з buildings.js)
+  let bgModelObj = null; // зберігаємо посилання на модель
+  const bgModelUrl = "models/Town-BG-Mirrored.glb";
+  
+  // Функція для отримання налаштувань з об'єкта "Нова будівля" з buildings.js
+  function getBackgroundSettings() {
+    const bgBuilding = buildings.find(b => b.modelUrl === bgModelUrl || b.id === 'bld_n15q43' || b.name === 'Нова будівля');
+    return {
+        coords: bgBuilding ? [bgBuilding.lng, bgBuilding.lat] : [34.676299, 48.135259],
+      alt: bgBuilding ? (bgBuilding.alt !== undefined ? bgBuilding.alt : -1) : -1,
+      scale: bgBuilding ? (bgBuilding.scale !== undefined ? bgBuilding.scale : 1) : 1,
+      rotation: bgBuilding ? { 
+        x: bgBuilding.rotX !== undefined ? bgBuilding.rotX : 90, 
+        y: bgBuilding.rotY !== undefined ? bgBuilding.rotY : 180, 
+        z: bgBuilding.rotZ !== undefined ? bgBuilding.rotZ : 0 
+      } : { x: 90, y: 180, z: 0 }
+    };
+  }
+  
+  // Змінні для зберігання поточних налаштувань
+  let bgCoords = [34.991347, 48.450419];
+  let bgAlt = -1;
+  let bgScale = 1;
+  let bgRotation = { x: 90, y: 180, z: 0 };
+  
+  function loadBackgroundModel(){
+    if (!tbLayerReady) return;
+    
+    // Отримуємо актуальні налаштування з buildings.js
+    const settings = getBackgroundSettings();
+    bgCoords = settings.coords;
+    bgAlt = settings.alt;
+    bgScale = settings.scale;
+    bgRotation = settings.rotation;
+    
+    // якщо модель вже завантажена, оновлюємо координати
+    if (bgModelObj) {
+      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
+      if (tb && tb.update) tb.update();
+      return;
+    }
+    tb.loadObj(
+      { 
+        type: 'gltf', 
+        obj: bgModelUrl, 
+        scale: bgScale, 
+        units: 'meters',
+        rotation: bgRotation, 
+        anchor: 'center' 
+      },
+      (obj) => {
+        bgModelObj = obj; // зберігаємо посилання на об'єкт
+        obj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
+        tb.add(obj);
+      },
+      (err) => {
+        console.error('Помилка завантаження фонового об\'єкта:', err);
+      }
+    );
+  }
+  
+  // функція для оновлення координат фонової моделі
+  function updateBackgroundCoords(newCoords, newAlt) {
+    bgCoords = newCoords;
+    if (newAlt !== undefined) bgAlt = newAlt;
+    if (bgModelObj) {
+      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
+      // Оновлюємо threebox після зміни координат
+      if (tb && tb.update) tb.update();
+    }
+  }
+  
+  // функція для повного оновлення параметрів фонової моделі
+  function updateBackgroundModel(config) {
+    if (config.lng !== undefined && config.lat !== undefined) {
+      bgCoords = [config.lng, config.lat];
+    }
+    if (config.alt !== undefined) bgAlt = config.alt;
+    if (config.scale !== undefined) bgScale = config.scale;
+    if (config.rotX !== undefined) bgRotation.x = config.rotX;
+    if (config.rotY !== undefined) bgRotation.y = config.rotY;
+    if (config.rotZ !== undefined) bgRotation.z = config.rotZ;
+    
+    // Якщо модель вже завантажена, оновлюємо координати
+    if (bgModelObj) {
+      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
+      if (tb && tb.update) tb.update();
+    } else if (tbLayerReady) {
+      // Якщо модель ще не завантажена, але threebox готовий, завантажуємо
+      loadBackgroundModel();
+    }
+  }
+
   // первинна ініціалізація
   function initOnce(){
     if (inited || !tbLayerReady) return;
-    buildings.forEach(upsertMarker);
-    buildings.forEach(ensureModel);
+    // Виключаємо "Нова будівля" зі звичайної загрузки (маркер і модель), бо вона завантажується як фонова модель
+    buildings.filter(b => b.modelUrl !== bgModelUrl && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').forEach(upsertMarker);
+    buildings.filter(b => b.modelUrl !== bgModelUrl && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').forEach(ensureModel);
+    loadBackgroundModel(); // завантаження фонового об'єкта
     inited = true;
     syncTbViewport();
     checkLoaded();
