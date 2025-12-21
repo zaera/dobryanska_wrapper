@@ -899,7 +899,8 @@
 </div>
 
 <script>
-(function(){
+    (function () {
+        console.log("main script");
   const $ = (s, root=document)=>root.querySelector(s);
   const listEl = $('#list'); const searchEl = $('#search');
   const overlay = $('#overlay'); const ovTitle = $('#ovTitle');
@@ -998,7 +999,7 @@
   const markers = new Map();
   const models  = new Map();
   // Виключаємо фонову модель "Town-BG-Mirrored.glb" з підрахунку, бо вона завантажується окремо
-  const totalToLoad = buildings.filter(b => b.modelUrl && b.modelUrl !== "models/Town-BG-Mirrored.glb" && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').length;
+  const totalToLoad = buildings.length;
   let loadedCount = 0;
   if (totalToLoad > 0) loader.classList.add('show');
 
@@ -1018,7 +1019,8 @@
     return marker;
   }
 
-  function ensureModel(b){
+    function ensureModel(b) {
+        console.log('ensureModel');
     if(!b.modelUrl || models.has(b.id) || !tbLayerReady) return;
     tb.loadObj(
       { type:'gltf', obj:b.modelUrl, scale:b.scale||8, units:'meters',
@@ -1029,11 +1031,13 @@
         obj.addTooltip(b.name, true);
         tb.add(obj);
         models.set(b.id,obj);
-        loadedCount++; checkLoaded();
+        loadedCount++; 
+        checkLoaded();
       },
       (err)=>{
         console.error(err);
-        loadedCount++; checkLoaded();
+        loadedCount++; 
+        checkLoaded();
       }
     );
   }
@@ -1059,7 +1063,8 @@
   const bgModelUrl = "models/Town-BG-Mirrored.glb";
   
   // Функція для отримання налаштувань з об'єкта "Нова будівля" з buildings.js
-  function getBackgroundSettings() {
+    function getBackgroundSettings() {
+        console.log('getBackgroundSettings');
     const bgBuilding = buildings.find(b => b.modelUrl === bgModelUrl || b.id === 'bld_n15q43' || b.name === 'Нова будівля');
     return {
         coords: bgBuilding ? [bgBuilding.lng, bgBuilding.lat] : [34.676299, 48.135259],
@@ -1074,93 +1079,64 @@
   }
   
   // Змінні для зберігання поточних налаштувань
-  let bgCoords = [34.991347, 48.450419];
+  let bgCoords = MAPCFG.center;
   let bgAlt = -1;
   let bgScale = 1;
   let bgRotation = { x: 90, y: 180, z: 0 };
   
-  function loadBackgroundModel(){
-    if (!tbLayerReady) return;
-    
-    // Отримуємо актуальні налаштування з buildings.js
-    const settings = getBackgroundSettings();
-    bgCoords = settings.coords;
-    bgAlt = settings.alt;
-    bgScale = settings.scale;
-    bgRotation = settings.rotation;
-    
-    // якщо модель вже завантажена, оновлюємо координати
-    if (bgModelObj) {
-      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
-      if (tb && tb.update) tb.update();
-      return;
-    }
-    tb.loadObj(
-      { 
-        type: 'gltf', 
-        obj: bgModelUrl, 
-        scale: bgScale, 
-        units: 'meters',
-        rotation: bgRotation, 
-        anchor: 'center' 
-      },
-      (obj) => {
-        bgModelObj = obj; // зберігаємо посилання на об'єкт
-        obj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
-        tb.add(obj);
-      },
-      (err) => {
-        console.error('Помилка завантаження фонового об\'єкта:', err);
-      }
-    );
-  }
-  
-  // функція для оновлення координат фонової моделі
-  function updateBackgroundCoords(newCoords, newAlt) {
-    bgCoords = newCoords;
-    if (newAlt !== undefined) bgAlt = newAlt;
-    if (bgModelObj) {
-      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
-      // Оновлюємо threebox після зміни координат
-      if (tb && tb.update) tb.update();
-    }
-  }
-  
-  // функція для повного оновлення параметрів фонової моделі
-  function updateBackgroundModel(config) {
-    if (config.lng !== undefined && config.lat !== undefined) {
-      bgCoords = [config.lng, config.lat];
-    }
-    if (config.alt !== undefined) bgAlt = config.alt;
-    if (config.scale !== undefined) bgScale = config.scale;
-    if (config.rotX !== undefined) bgRotation.x = config.rotX;
-    if (config.rotY !== undefined) bgRotation.y = config.rotY;
-    if (config.rotZ !== undefined) bgRotation.z = config.rotZ;
-    
-    // Якщо модель вже завантажена, оновлюємо координати
-    if (bgModelObj) {
-      bgModelObj.setCoords([bgCoords[0], bgCoords[1], bgAlt]);
-      if (tb && tb.update) tb.update();
-    } else if (tbLayerReady) {
-      // Якщо модель ще не завантажена, але threebox готовий, завантажуємо
-      loadBackgroundModel();
-    }
-  }
-
   // первинна ініціалізація
   function initOnce(){
     if (inited || !tbLayerReady) return;
-    // Виключаємо "Нова будівля" зі звичайної загрузки (маркер і модель), бо вона завантажується як фонова модель
-    buildings.filter(b => b.modelUrl !== bgModelUrl && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').forEach(upsertMarker);
-    buildings.filter(b => b.modelUrl !== bgModelUrl && b.id !== 'bld_n15q43' && b.name !== 'Нова будівля').forEach(ensureModel);
-    loadBackgroundModel(); // завантаження фонового об'єкта
+    
+    
+    
+    var tempObj= {
+    "id": "bld_n15q43",
+    "name": "Нова будівля",
+    "note": "",
+    "lng": 34.990057,
+    "lat": 48.453407,
+    "alt": -1,
+    "infoHtml": "",
+    "media": [],
+    "modelUrl": "models/Town-BG-Mirrored.glb",
+    "scale": 1,
+    "rotX": 90,
+    "rotY": 180,
+    "rotZ": 0
+  };
+
+
+    tb.loadObj(
+      { type:'gltf', obj:tempObj.modelUrl, scale:tempObj.scale||8, units:'meters',
+        rotation:{x:tempObj.rotX||0,y:tempObj.rotY||0,z:tempObj.rotZ||0}, anchor:'center' },
+      (obj)=>{
+        obj.setCoords([tempObj.lng,tempObj.lat,tempObj.alt||8]);
+        obj.userData.buildingId = tempObj.id;
+        obj.addTooltip(tempObj.name, true);
+        tb.add(obj);
+        models.set(tempObj.id,obj);
+        loadedCount++;         
+      },
+      (err)=>{
+        console.error(err);
+        loadedCount++;         
+      }
+    );
+
+    buildings.forEach(upsertMarker);
+    buildings.forEach(ensureModel);
+
+
+    // loadBackgroundModel(); 
     inited = true;
     syncTbViewport();
     checkLoaded();
   }
 
   // ==== список у сайдбарі ====
-  function renderList(filter=''){
+    function renderList(filter = '') {
+        console.log("renderList");
     listEl.innerHTML='';
     const q = filter.trim().toLowerCase();
     buildings
