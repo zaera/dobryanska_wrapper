@@ -153,36 +153,9 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #E0E0E0;
         }
-    </style>
-    <meta charset="utf-8" />
-    <title>Історичні будівлі Дніпра — мапа з Threebox</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Mapbox GL JS (локальнi файли) -->
-    <link href="css/mapbox-gl.css" rel="stylesheet">
-    <script src="js/mapbox-gl.js"></script>
 
-    <!-- Threebox (локальнi файли) -->
-    <script src="js/threebox.js" type="text/javascript"></script>
-    <link href="css/threebox.css" rel="stylesheet" />
 
-    <!-- Токен -->
-    <script src="config.js"></script>
-
-    <!-- Wavesurfer -->
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-
-    <!-- TWEEN.js -->
-    <script src="js/tween.umd.js"></script>
-
-    <!-- Даннi будівель -->
-    <script src="buildings.js"></script>
-
-    <!-- Шрифти / іконки -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-
-    <style>
         :root {
             --bg: #1A1A1A;
             --paper: #222526;
@@ -827,7 +800,35 @@
         h1 {
             text-align: left;
         }
+
     </style>
+    <meta charset="utf-8" />
+    <title>Історичні будівлі Дніпра — мапа з Threebox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Mapbox GL JS (локальнi файли) -->
+    <link href="css/mapbox-gl.css" rel="stylesheet">
+    <script src="js/mapbox-gl.js"></script>
+
+    <!-- Threebox (локальнi файли) -->
+    <script src="js/threebox.js" type="text/javascript"></script>
+    <link href="css/threebox.css" rel="stylesheet" />
+
+    <!-- Токен -->
+    <script src="config.js"></script>
+
+    <!-- Wavesurfer -->
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+
+    <!-- TWEEN.js -->
+    <script src="js/tween.umd.js"></script>
+
+    <!-- Даннi будівель -->
+    <script src="buildings.js"></script>
+
+    <!-- Шрифти / іконки -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
 <body>
 <div id="app">
@@ -998,7 +999,6 @@
   // ==== маркери/моделі + LOADER ====
   const markers = new Map();
   const models  = new Map();
-  // Виключаємо фонову модель "Town-BG-Mirrored.glb" з підрахунку, бо вона завантажується окремо
   const totalToLoad = buildings.length;
   let loadedCount = 0;
   if (totalToLoad > 0) loader.classList.add('show');
@@ -1057,10 +1057,6 @@
       .start();
   }
   function focusBuilding(b){ upsertMarker(b); ensureModel(b); tweenToBuilding(b, { duration: 1600 }); }
-
-  // завантаження фонового об'єкта (налаштування з "Нова будівля" з buildings.js)
-  let bgModelObj = null; // зберігаємо посилання на модель
-  const bgModelUrl = "models/Town-BG-Mirrored.glb";
   
   // Функція для отримання налаштувань з об'єкта "Нова будівля" з buildings.js
     function getBackgroundSettings() {
@@ -1088,17 +1084,12 @@
   function initOnce(){
     if (inited || !tbLayerReady) return;
     
-    
-    
+        
+    // ==== ЗАВАНТАЖЕННЯ МОДЕЛЕЙ та ФОНОВИХ БУДІВЕЛЬ ====
     var tempObj= {
-    "id": "bld_n15q43",
-    "name": "Нова будівля",
-    "note": "",
     "lng": 34.990057,
     "lat": 48.453407,
     "alt": -1,
-    "infoHtml": "",
-    "media": [],
     "modelUrl": "models/Town-BG-Mirrored.glb",
     "scale": 1,
     "rotX": 90,
@@ -1112,26 +1103,21 @@
         rotation:{x:tempObj.rotX||0,y:tempObj.rotY||0,z:tempObj.rotZ||0}, anchor:'center' },
       (obj)=>{
         obj.setCoords([tempObj.lng,tempObj.lat,tempObj.alt||8]);
-        obj.userData.buildingId = tempObj.id;
-        obj.addTooltip(tempObj.name, true);
         tb.add(obj);
-        models.set(tempObj.id,obj);
-        loadedCount++;         
-      },
-      (err)=>{
-        console.error(err);
-        loadedCount++;         
-      }
-    );
-
-    buildings.forEach(upsertMarker);
-    buildings.forEach(ensureModel);
-
-
-    // loadBackgroundModel(); 
+        loadedCount++;      
+        buildings.forEach(upsertMarker);
+    buildings.forEach(ensureModel);    
     inited = true;
     syncTbViewport();
     checkLoaded();
+
+
+      },
+      (err)=>{
+        console.error(err);
+        loadedCount++;
+      }
+    );
   }
 
   // ==== список у сайдбарі ====
