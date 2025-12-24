@@ -1197,6 +1197,31 @@
     info.style.marginTop = '10px';
     ovBody.appendChild(info);
 
+    if (typeof b.lat === 'number' && typeof b.lng === 'number') {
+  const coords = document.createElement('div');
+  coords.style.marginTop = '12px';
+  coords.style.fontSize = '13px';
+  coords.style.color = 'var(--muted)';
+
+  const lat = b.lat.toFixed(6);
+  const lng = b.lng.toFixed(6);
+
+  const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  coords.innerHTML = `
+    <strong>Координати:</strong>
+    <a href="${gmapsUrl}"
+       target="_blank"
+       rel="noopener noreferrer"
+       style="color: var(--accent); text-decoration: underline;">
+       ${lat}; ${lng}
+    </a>
+  `;
+
+  ovBody.appendChild(coords);
+}
+
+
     // мягкий fade-in (CSS)
     overlay.classList.add('show');
     document.body.style.overflow = 'hidden';
