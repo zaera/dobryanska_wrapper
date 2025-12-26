@@ -991,6 +991,10 @@
     if (!map.getLayer('tb-layer')) {
       map.addLayer({ id:'tb-layer', type:'custom', renderingMode:'3d', onAdd:()=>{}, render:()=>{ tb && tb.update(); }});
     }
+    map.setFog({
+      color: 'rgb(113,113,113)',
+      'horizon-blend': 1
+    });
     tbLayerReady = true;
     syncTbViewport();
     initOnce();
