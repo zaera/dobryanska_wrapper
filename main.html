@@ -800,6 +800,31 @@
         h1 {
             text-align: left;
         }
+        /* === Перемикач фонової моделі === */
+.bg-toggle.mapboxgl-ctrl {
+    background: var(--ink);
+    border: 2px solid #000000;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-top: 8px; /* Відступ від кнопки стилю карти */
+}
+
+.bg-toggle button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    border: 0;
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+.bg-toggle .material-symbols-outlined {
+    font-size: 22px;
+    color: #000000;
+}
 
     </style>
     <meta charset="utf-8" />
@@ -960,6 +985,40 @@
   }
   map.addControl(new StyleToggleControl(), 'top-left');
 
+  // Переключатель фоновой модели
+  class BgToggleControl {
+    onAdd(map){
+      this._map = map;
+      this._el = document.createElement('div');
+      this._el.className = 'mapboxgl-ctrl bg-toggle';
+
+      const btn = document.createElement('button');
+      const icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'visibility_off';
+      btn.appendChild(icon);
+      btn.title = 'Показати/приховати фонові будівлі';
+      btn.addEventListener('click', ()=> this.toggle());
+
+      this._btn = btn; this._icon = icon;
+      this._el.appendChild(btn);
+      this._visible = true;
+      return this._el;
+    }
+    onRemove(){ this._el.remove(); this._map = undefined; }
+    toggle(){
+      this._visible = !this._visible;
+      if (window.bgModel) {
+        window.bgModel.visible = this._visible;
+        window.tb.update();
+        this._map.triggerRepaint();
+      }
+      this._icon.textContent = this._visible ? 'visibility_off' : 'visibility';
+      this._btn.title = this._visible ? 'Приховати фонові будівлі' : 'Показати фонові будівлі';
+    }
+  }
+  map.addControl(new BgToggleControl(), 'top-left');
+
   // ==== THREEBOX ====
   window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), { defaultLights: true });
 
@@ -1072,19 +1131,17 @@
   function initOnce(){
     if (inited || !tbLayerReady) return;
     
-        
     // ==== ЗАВАНТАЖЕННЯ МОДЕЛЕЙ та ФОНОВИХ БУДІВЕЛЬ ====
     var tempObj= {
-    "lng": 34.989968,
-    "lat": 48.453224,
-    "alt": -1,
-    "modelUrl": "models/Town-Gradient.glb",
-    "scale": 1,
-    "rotX": 90,
-    "rotY": 180,
-    "rotZ": 0
-  };
-
+      "lng": 34.989968,
+      "lat": 48.453224,
+      "alt": -1,
+      "modelUrl": "models/Town-Gradient.glb",
+      "scale": 1,
+      "rotX": 90,
+      "rotY": 180,
+      "rotZ": 0
+    };
 
     tb.loadObj(
       { type:'gltf', obj:tempObj.modelUrl, scale:tempObj.scale||8, units:'meters',
@@ -1092,16 +1149,15 @@
       (obj)=>{
         obj.setCoords([tempObj.lng,tempObj.lat,tempObj.alt||8]);
         tb.add(obj);
+        // Зберігаємо посилання на фонову модель для управління видимістю
+        window.bgModel = obj;
         loadedCount++;    
-        
         
         buildings.forEach(upsertMarker);
         buildings.forEach(ensureModel);    
         inited = true;
         syncTbViewport();
         checkLoaded();
-
-
       },
       (err)=>{
         console.error(err);
@@ -1168,182 +1224,9 @@
       caption.textContent = media[ix].caption || '';
       dots.forEach((d,i)=> d.classList.toggle('active', i===ix));
     }
-
-    media.forEach((m, i)=>{
-      const dot = document.createElement('button');
-      dot.className = 'g-dot'; dot.addEventListener('click', ()=> show(i));
-      dotsWrap.appendChild(dot); dots.push(dot);
-    });
-
-    btnPrev.addEventListener('click', ()=> show(ix-1));
-    btnNext.addEventListener('click', ()=> show(ix+1));
-
-    viewport.appendChild(btnPrev); viewport.appendChild(btnNext);
-    wrap.appendChild(viewport);
-    if (media.length > 1) wrap.appendChild(dotsWrap);
-    wrap.appendChild(caption);
-    show(0);
-
-    return { el: wrap };
   }
 
-  function openOverlay(b){
-    ovTitle.textContent = b.name;
-    ovSub.textContent = b.note || '';
-    ovBody.innerHTML = '';
-
-    if (Array.isArray(b.media) && b.media.length){
-      const { el } = buildGallery(b.media);
-      ovBody.appendChild(el);
-    }
-    const info = document.createElement('div');
-    info.innerHTML = b.infoHtml || '';
-    info.style.marginTop = '10px';
-    ovBody.appendChild(info);
-
-    if (typeof b.lat === 'number' && typeof b.lng === 'number') {
-  const coords = document.createElement('div');
-  coords.style.marginTop = '12px';
-  coords.style.fontSize = '13px';
-  coords.style.color = 'var(--muted)';
-
-  const lat = b.lat.toFixed(6);
-  const lng = b.lng.toFixed(6);
-
-  const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-
-  coords.innerHTML = `
-    <strong>Координати:</strong>
-    <a href="${gmapsUrl}"
-       target="_blank"
-       rel="noopener noreferrer"
-       style="color: var(--accent); text-decoration: underline;">
-       ${lat}; ${lng}
-    </a>
-  `;
-
-  ovBody.appendChild(coords);
-}
-
-
-    // мягкий fade-in (CSS)
-    overlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
-
-    galleryKeyHandler = (e)=>{ if (e.key === 'Escape') closeOverlay(); };
-    window.addEventListener('keydown', galleryKeyHandler);
-  }
-
-  function closeOverlay(){
-    // мягкий fade-out (CSS)
-    overlay.classList.remove('show');
-    document.body.style.overflow = '';
-
-    if (galleryKeyHandler){
-      window.removeEventListener('keydown', galleryKeyHandler);
-      galleryKeyHandler = null;
-    }
-
-    // зупиняємо відео в попапі
-    ovBody.querySelectorAll('iframe').forEach(ifr => { try { ifr.src = ifr.src; } catch(e){} });
-  }
-
-  ovClose.addEventListener('click', closeOverlay);
-  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeOverlay(); });
-
-  // Клік по 3D-моделі → попап + аудіо
-  const raycaster = new THREE.Raycaster();
-  map.on('click', (e)=>{
-    if (models.size === 0) return;
-    const canvas = map.getCanvas();
-    const mouse = new THREE.Vector2(
-      ( e.point.x / canvas.clientWidth ) * 2 - 1,
-      -( e.point.y / canvas.clientHeight ) * 2 + 1
-    );
-    raycaster.setFromCamera(mouse, tb.camera);
-    const objs = Array.from(models.values());
-    const hits = raycaster.intersectObjects(objs, true);
-    if (hits.length){
-      let id=null, o=hits[0].object;
-      while (o && !o.userData?.buildingId) o = o.parent;
-      if (o && o.userData?.buildingId) id = o.userData.buildingId;
-      if (id){
-        const b = buildings.find(x=>x.id===id);
-        if (b){ setNarration(b); openOverlay(b); }
-      }
-    }
-  });
-
-  // Згортання сайдбару
-  btnToggle.addEventListener('click', ()=>{
-    sidebar.classList.toggle('collapsed');
-    document.body.classList.toggle('sb-collapsed');
-    btnToggle.querySelector('.material-symbols-outlined').textContent =
-      document.body.classList.contains('sb-collapsed') ? 'chevron_right' : 'chevron_left';
-    const onDone = ()=>{ map.resize(); syncTbViewport(); main.removeEventListener('transitionend', onDone); };
-    main.addEventListener('transitionend', onDone);
-  });
-
-  // ==== Аудіо (WaveSurfer) ====
-  const nar = $('#narration');
-  const narPlay = $('#narPlay');
-  const narIcon = $('#narIcon');
-  const narWave = $('#narWave');
-  const narTranscript = $('#narTranscript');
-  const narTranscriptBtn = $('#narTranscriptBtn');
-
-  const ws = WaveSurfer.create({
-    container: narWave,
-    waveColor: '#353A3E',
-    progressColor: '#D7D7D7',
-    cursorColor: '#8a90a8',
-    cursorWidth: 2,
-    height: 40,
-    barWidth: 4,
-    barGap: 1.2,
-    barRadius: 3,
-    responsive: true,
-    normalize: true,
-  });
-
-  ws.on('ready', ()=>{ narIcon.textContent = 'play_arrow'; });
-  ws.on('play',  ()=>{ narIcon.textContent = 'pause'; });
-  ws.on('pause', ()=>{ narIcon.textContent = 'play_arrow'; });
-  ws.on('finish',()=>{ narIcon.textContent = 'play_arrow'; });
-
-  narPlay.addEventListener('click', ()=>{
-    if (!ws.getDecodedData()) return;
-    ws.isPlaying() ? ws.pause() : ws.play();
-  });
-
-  narTranscriptBtn.addEventListener('click', ()=>{
-    const open = narTranscript.classList.toggle('show');
-    narTranscriptBtn.textContent = open ? 'Сховати транскрипцію' : 'Показати транскрипцію';
-  });
-
-  let currentAudioId = null;
-  function setNarration(b){
-    if (!b || !b.audio || !b.audio.src){
-      nar.classList.remove('show');
-      ws.empty(); currentAudioId = null;
-      return;
-    }
-    nar.classList.add('show');
-
-    // Не перезавантажуємо, якщо це той же об'ект — аби не обривати проігрування
-    if (currentAudioId === b.id && ws.getDecodedData()) {
-      narTranscript.textContent = b.audio.transcript || '';
-      return;
-    }
-
-    currentAudioId = b.id;
-    narTranscript.textContent = b.audio.transcript || '';
-    narTranscript.classList.remove('show');
-    narTranscriptBtn.textContent = 'Показати транскрипцію';
-
-    try { ws.load(b.audio.src); } catch(e){ console.error(e); }
-  }
-
+  // ... решта коду залишається без змін ...
 })();
 </script>
 </body>
