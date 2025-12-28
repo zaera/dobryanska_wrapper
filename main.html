@@ -110,7 +110,41 @@
   const ovClose = $('#ovClose'); const sidebar = $('#sidebar');
   const main = document.querySelector('.main'); const btnToggle = $('#btnToggle');
   const loader = $('#loader');
+        // Згортання сайдбару
+        btnToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sb-collapsed');
 
+            const icon = btnToggle.querySelector('.material-symbols-outlined');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.textContent = 'chevron_right';
+                icon.title = 'Розгорнути';
+
+                // Скрываем содержимое сайдбара
+                const content = sidebar.querySelectorAll(':not(.toggle)');
+                content.forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                });
+
+            } else {
+                icon.textContent = 'chevron_left';
+                icon.title = 'Згорнути';
+
+                // Показываем содержимое сайдбара
+                const content = sidebar.querySelectorAll(':not(.toggle)');
+                content.forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.pointerEvents = 'auto';
+                });
+            }
+
+            // Обновляем карту после анимации
+            setTimeout(() => {
+                map.resize();
+                syncTbViewport();
+            }, 300);
+        });
     // Сторінка завантаження
     const headerLogo = document.querySelector('#logo img');
 
