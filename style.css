@@ -858,15 +858,8 @@
     color: #000000;
 }
 
-@keyframes focusBlink {
-  0%   { background-color: #d32f2f; }
-  50%  { background-color: #ffffff; }
-  100% { background-color: #d32f2f; }
-}
 
-.mk.focus-blink {
-  animation: focusBlink 0.6s ease-in-out 6;
-}
+
 
 /* === BG TOGGLE: OFF STATE (ЗАЧЕРКИВАНИЕ) === */
 .bg-toggle {
@@ -890,3 +883,44 @@
   opacity: 0.8;
   pointer-events: none;
 }
+
+.mk-img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+
+  /* базовая тень */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.35));
+}
+
+.mk-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.mk-img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.35));
+}
+
+/* ПУЛЬС ТОЛЬКО КАРТИНКИ */
+.mk-wrap.focus-blink .mk-img {
+  animation: imgPulse 0.6s ease-in-out 6;
+}
+
+
+@keyframes imgPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+
