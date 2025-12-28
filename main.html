@@ -591,43 +591,79 @@ function resetMarkerVisual(marker) {
   // ==== Галерея/модал ====
   let galleryKeyHandler = null;
 
-  function buildGallery(media){
-    const wrap = document.createElement('div');
-    wrap.className = 'gallery';
-    const viewport = document.createElement('div'); viewport.className = 'g-viewport';
-    const caption = document.createElement('div'); caption.className = 'g-caption';
-    const dotsWrap = document.createElement('div'); dotsWrap.className = 'g-dots';
-    const btnPrev = document.createElement('button'); btnPrev.className = 'g-prev'; btnPrev.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
-    const btnNext = document.createElement('button'); btnNext.className = 'g-next'; btnNext.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+        function buildGallery(media) {
+            const wrap = document.createElement('div');
+            wrap.className = 'gallery';
 
-    let ix = 0, dots = [];
+            const viewport = document.createElement('div');
+            viewport.className = 'g-viewport';
 
-    function nodeFor(item){
-      if (item.type === 'youtube'){
-        const ifr = document.createElement('iframe');
-        ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        ifr.referrerPolicy = 'strict-origin-when-cross-origin';
-        ifr.allowFullscreen = true;
-        ifr.src = `https://www.youtube.com/embed/${item.videoId}?rel=0&modestbranding=1`;
-        return ifr;
-      } else {
-        const img = document.createElement('img');
-        img.src = item.src; img.alt = item.caption || '';
-        return img;
-      }
-    }
+            const caption = document.createElement('div');
+            caption.className = 'g-caption';
 
-    function show(n){
-      ix = (n + media.length) % media.length;
-      viewport.innerHTML = '';
-      viewport.appendChild(nodeFor(media[ix]));
-      caption.textContent = media[ix].caption || '';
-      dots.forEach((d,i)=> d.classList.toggle('active', i===ix));
-    }
+            const dotsWrap = document.createElement('div');
+            dotsWrap.className = 'g-dots';
 
-    show(0);
-    return { el: wrap };
-  }
+            const btnPrev = document.createElement('button');
+            btnPrev.className = 'g-prev';
+            btnPrev.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+
+            const btnNext = document.createElement('button');
+            btnNext.className = 'g-next';
+            btnNext.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+
+            let ix = 0;
+            let dots = [];
+
+            function nodeFor(item) {
+                if (item.type === 'youtube') {
+                    const ifr = document.createElement('iframe');
+                    ifr.allow =
+                        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    ifr.allowFullscreen = true;
+                    ifr.referrerPolicy = 'strict-origin-when-cross-origin';
+                    ifr.src = `https://www.youtube.com/embed/${item.videoId}?rel=0&modestbranding=1`;
+                    return ifr;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = item.src;
+                    img.alt = item.caption || '';
+                    return img;
+                }
+            }
+
+            function show(n) {
+                ix = (n + media.length) % media.length;
+
+                viewport.innerHTML = '';
+                viewport.appendChild(nodeFor(media[ix]));
+
+                caption.textContent = media[ix].caption || '';
+
+                dots.forEach((d, i) => d.classList.toggle('active', i === ix));
+            }
+
+            // точки
+            dots = media.map((_, i) => {
+                const d = document.createElement('button');
+                d.className = 'g-dot';
+                d.addEventListener('click', () => show(i));
+                dotsWrap.appendChild(d);
+                return d;
+            });
+
+            btnPrev.addEventListener('click', () => show(ix - 1));
+            btnNext.addEventListener('click', () => show(ix + 1));
+            wrap.appendChild(viewport);
+            wrap.appendChild(btnPrev);
+            wrap.appendChild(btnNext);
+            wrap.appendChild(caption);
+            wrap.appendChild(dotsWrap);
+
+            show(0);
+
+            return { el: wrap };
+        }
 })();
 </script>
 </body>
