@@ -941,4 +941,6 @@
   100% { transform: scale(1); }
 }
 
-
+.mk-wrap.active .mk-img {
+  content: url("media/marker_active.png");
+}
