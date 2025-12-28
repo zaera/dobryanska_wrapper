@@ -678,16 +678,18 @@
         }
 
         .style-toggle button {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--ink);
-            border: 2;
-            cursor: pointer;
-            border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ink);
+        border: 0;
+        cursor: pointer;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
         }
+
 
         .style-toggle .material-symbols-outlined {
             font-size: 22px;
@@ -832,10 +834,11 @@
         /* === Перемикач фонової моделі === */
 .bg-toggle.mapboxgl-ctrl {
     background: var(--ink);
-    border: 2px solid #000000;
+    border: 0px solid #000000;
     border-radius: 12px;
     box-shadow: var(--shadow);
     margin-top: 8px; /* Відступ від кнопки стилю карти */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .bg-toggle button {
@@ -863,4 +866,27 @@
 
 .mk.focus-blink {
   animation: focusBlink 0.6s ease-in-out 6;
+}
+
+/* === BG TOGGLE: OFF STATE (ЗАЧЕРКИВАНИЕ) === */
+.bg-toggle {
+  position: relative;
+}
+
+.bg-toggle.off .material-symbols-outlined {
+  opacity: 0.35;
+}
+
+.bg-toggle.off::after {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 2px;
+  background: #000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  border-radius: 2px;
+  opacity: 0.8;
+  pointer-events: none;
 }

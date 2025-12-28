@@ -302,7 +302,7 @@
       const btn = document.createElement('button');
       const icon = document.createElement('span');
       icon.className = 'material-symbols-outlined';
-      icon.textContent = 'visibility_off';
+      icon.textContent = 'location_city';
       btn.appendChild(icon);
       btn.title = 'Показати/приховати фонові будівлі';
       btn.addEventListener('click', ()=> this.toggle());
@@ -313,16 +313,18 @@
       return this._el;
     }
     onRemove(){ this._el.remove(); this._map = undefined; }
-    toggle(){
-      this._visible = !this._visible;
-      if (window.bgModel) {
-        window.bgModel.visible = this._visible;
-        window.tb.update();
-        this._map.triggerRepaint();
-      }
-      this._icon.textContent = this._visible ? 'visibility_off' : 'visibility';
-      this._btn.title = this._visible ? 'Приховати фонові будівлі' : 'Показати фонові будівлі';
-    }
+   toggle(){
+  this._visible = !this._visible;
+
+  if (window.bgModel) {
+    window.bgModel.visible = this._visible;
+    window.tb.update();
+    this._map.triggerRepaint();
+  }
+
+  // визуальное состояние кнопки
+  this._el.classList.toggle('off', !this._visible);
+}
   }
   map.addControl(new BgToggleControl(), 'top-left');
 
