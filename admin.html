@@ -56,7 +56,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif}
 
-    /* Экран авторизации */
+    /* Екран авторизації */
     .auth{
       position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
       background:linear-gradient(180deg, rgba(10,14,26,.06), rgba(10,14,26,.12));
@@ -81,7 +81,7 @@
     .auth-err{color:#8b1a1a; font-size:12px; display:none}
     .auth-err.show{display:block}
 
-    /* Прячем приложение до авторизации */
+    /* Ховаємо застосунок до авторизації користувача */
     #app.hidden{ display:none; }
 
     #app{display:grid;grid-template-rows:auto 1fr auto;min-height:100vh}
@@ -191,7 +191,7 @@
 </head>
 <body>
 
-<!-- АВТОРИЗАЦИЯ -->
+<!-- АВТОРИЗАЦІЯ -->
 <div id="auth" class="auth" aria-modal="true" role="dialog">
   <div class="auth-card">
     <h2>Вхід до адмінки</h2>
@@ -379,7 +379,7 @@ async function sha256Hex(str) {
       const buf = await window.crypto.subtle.digest('SHA-256', enc);
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-  } catch (e) { /* ignore and fallback */ }
+  } catch (e) {  }
   return sha256HexFallback(str);
 }
 
@@ -459,7 +459,7 @@ async function doLogin(){
     sessionStorage.setItem('adminOK', '1');
     authEl.style.display = 'none';
     appEl.classList.remove('hidden');
-    initApp(); // запускаем админку
+    initApp(); // запускаємо адмінку
   }else{
     authErr.textContent = 'Невірний логін або пароль';
     authErr.classList.add('show');
@@ -468,7 +468,7 @@ async function doLogin(){
     sessionStorage.setItem('adminOK', '1');
     authEl.style.display = 'none';
     appEl.classList.remove('hidden');
-    initApp(); // запускаем админку
+      initApp(); // запускаємо адмінку
   }
 }
 authBtn?.addEventListener('click', doLogin);
@@ -481,7 +481,7 @@ if(sessionStorage.getItem('adminOK') === '1'){
   initApp();
 }
 
-/* ====== Вся логика админки внутри initApp() ====== */
+/* ====== Уся логіка адмін панелі всередині initApp() ====== */
 function initApp(){
 (function(){
   const $ = (s,root=document)=>root.querySelector(s);
@@ -513,7 +513,7 @@ function initApp(){
   // mapbox token
   mapboxgl.accessToken = (window.config && window.config.accessToken) || '';
 
-  // ===== РЕНДЕР СПИСКУ (dnd + подсветка выбранного) =====
+  // ===== РЕНДЕР СПИСКУ (dnd + підсвічування обраного) =====
   function renderList(){
     listEl.innerHTML='';
     data.forEach((b,i)=>{
@@ -955,7 +955,7 @@ function initApp(){
     if (tbBackup!==null){ window.tb=tbBackup; tbBackup=null; } else { delete window.tb; }
     if (document.getElementById('geoMapCanvas')){
       try{
-        // карта уничтожается в openGeo при remove()
+          // карта знищується в openGeo при remove()
       }catch(e){}
     }
     geoMap=null; geoTb=null; geoObj=null;

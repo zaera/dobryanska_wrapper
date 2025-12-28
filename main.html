@@ -58,7 +58,6 @@
 
       <a href="/admin.html" class="user-btn" title="Адмінка">
           <span class="material-symbols-outlined">person</span>
-          <!--<span class="login-text">Вхід</span>-->
       </a>
   </header>
 
@@ -79,7 +78,7 @@
     <section class="map-card">
       <div id="map"></div>
 
-      <!-- Аудио-виджет -->
+      <!-- Аудіо-віджет -->
       <div id="narration" class="narration" aria-live="polite">
         <div class="nar-player">
           <button id="narPlay" class="nar-btn" title="Відтворити/Пауза">
@@ -92,7 +91,6 @@
         </div>
         <div id="narTranscript" class="nar-transcript"></div>
       </div>
-      <!-- /Аудио-виджет -->
     </section>
   </div>
 
@@ -120,7 +118,6 @@
                 icon.textContent = 'chevron_right';
                 icon.title = 'Розгорнути';
 
-                // Скрываем содержимое сайдбара
                 const content = sidebar.querySelectorAll(':not(.toggle)');
                 content.forEach(el => {
                     el.style.opacity = '0';
@@ -131,7 +128,6 @@
                 icon.textContent = 'chevron_left';
                 icon.title = 'Згорнути';
 
-                // Показываем содержимое сайдбара
                 const content = sidebar.querySelectorAll(':not(.toggle)');
                 content.forEach(el => {
                     el.style.opacity = '1';
@@ -139,7 +135,6 @@
                 });
             }
 
-            // Обновляем карту после анимации
             setTimeout(() => {
                 map.resize();
                 syncTbViewport();
@@ -166,15 +161,12 @@
 
 
 
-    // ==== POPUP (overlay) из старого кода ====
+    // ==== POPUP (overlay) ====
 
   function openOverlay(b){
     ovTitle.textContent = b.name;
     ovSub.textContent = b.note || '';
     ovBody.innerHTML = '';
-
-    // если у тебя в новом коде есть buildGallery — оставь как было
-    // если buildGallery сломан/обрезан, временно выключи галерею:
     if (Array.isArray(b.media) && b.media.length && typeof buildGallery === 'function'){
       const { el } = buildGallery(b.media);
       ovBody.appendChild(el);
@@ -213,7 +205,7 @@
         </a>
     `;
 
-          ovBody.appendChild(coords); // ← ниже ВСЕГО, как раньше
+          ovBody.appendChild(coords);
       }
 
 
@@ -229,8 +221,6 @@
       window.removeEventListener('keydown', galleryKeyHandler);
       galleryKeyHandler = null;
     }
-
-    // остановить видео в попапе
     ovBody.querySelectorAll('iframe').forEach(ifr => { 
       try { ifr.src = ifr.src; } catch(e){} 
     });
@@ -240,7 +230,7 @@
   if (overlay) overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeOverlay(); });
 
 
-  // ==== Аудио (WaveSurfer) из старого кода ====
+  // ==== Аудио (WaveSurfer) ====
   const nar = $('#narration');
   const narPlay = $('#narPlay');
   const narIcon = $('#narIcon');
@@ -280,7 +270,6 @@
   let currentAudioId = null;
 
   function setNarration(b){
-    // ВАЖНО: структура как в старом коде
     if (!b || !b.audio || !b.audio.src){
       nar.classList.remove('show');
       ws.empty(); 
@@ -288,8 +277,6 @@
       return;
     }
     nar.classList.add('show');
-
-    // не перезагружаем если тот же объект
     if (currentAudioId === b.id && ws.getDecodedData()) {
       narTranscript.textContent = b.audio.transcript || '';
       return;
@@ -355,7 +342,7 @@
   }
   map.addControl(new StyleToggleControl(), 'top-left');
 
-  // Переключатель фоновой модели
+  // Перемикач фонової моделі
   class BgToggleControl {
     onAdd(map){
       this._map = map;
@@ -384,8 +371,6 @@
     window.tb.update();
     this._map.triggerRepaint();
   }
-
-  // визуальное состояние кнопки
   this._el.classList.toggle('off', !this._visible);
 }
   }
@@ -474,9 +459,6 @@ wrap.addEventListener('click', (e) => {
   markers.set(b.id, marker);
   return marker;
 }
-
-
-
     function ensureModel(b) {
         console.log('ensureModel');
     if(!b.modelUrl || models.has(b.id) || !tbLayerReady) return;
@@ -520,7 +502,6 @@ function focusBuilding(b, source = 'unknown') {
     const prev = markers.get(activeMarkerId);
     resetMarkerVisual(prev);
     }
-  //console.log('focusBuilding:', b.id, 'source:', source);
 
   const marker = upsertMarker(b);
   ensureModel(b);
@@ -535,7 +516,7 @@ function focusBuilding(b, source = 'unknown') {
  if (allowRestore && activeMarkerId && activeMarkerId !== b.id) {
   const prev = markers.get(activeMarkerId);
     if (prev && prev._removed) {
-    resetMarkerVisual(prev);   // ← ВАЖНО
+    resetMarkerVisual(prev);
     prev.addTo(map);
     prev._removed = false;
     }
@@ -551,9 +532,6 @@ function focusBuilding(b, source = 'unknown') {
 
   clearTimeout(marker._hideTimer);
   marker._hideTimer = setTimeout(() => {
-    //console.log('hide marker:', b.id);
-    //wrap.style.opacity = '0';
-    //wrap.style.pointerEvents = 'none';
     marker.remove();
     marker._removed = true;
   }, 600 * 6);
@@ -569,7 +547,7 @@ function resetMarkerVisual(marker) {
 
   wrap.classList.remove('focus-blink');
 
-  // сброс анимации, если была
+  // Якщо була анімація - скидуємо
   const img = wrap.querySelector('.mk-img');
   if (img) void img.offsetWidth;
 
