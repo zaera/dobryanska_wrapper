@@ -112,33 +112,10 @@
         btnToggle.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('sb-collapsed');
-
-            const icon = btnToggle.querySelector('.material-symbols-outlined');
-            if (sidebar.classList.contains('collapsed')) {
-                icon.textContent = 'chevron_right';
-                icon.title = 'Розгорнути';
-
-                const content = sidebar.querySelectorAll(':not(.toggle)');
-                content.forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                });
-
-            } else {
-                icon.textContent = 'chevron_left';
-                icon.title = 'Згорнути';
-
-                const content = sidebar.querySelectorAll(':not(.toggle)');
-                content.forEach(el => {
-                    el.style.opacity = '1';
-                    el.style.pointerEvents = 'auto';
-                });
-            }
-
-            setTimeout(() => {
-                map.resize();
-                syncTbViewport();
-            }, 300);
+            btnToggle.querySelector('.material-symbols-outlined').textContent =
+                document.body.classList.contains('sb-collapsed') ? 'chevron_right' : 'chevron_left';
+            const onDone = () => { map.resize(); syncTbViewport(); main.removeEventListener('transitionend', onDone); };
+            main.addEventListener('transitionend', onDone);
         });
     // Сторінка завантаження
     const headerLogo = document.querySelector('#logo img');
@@ -522,28 +499,21 @@ function focusBuilding(b, source = 'unknown') {
     }
 }
 
+
   wrap.style.opacity = '1';
   wrap.style.pointerEvents = 'auto';
 
-  if (activeMarkerId && activeMarkerId !== b.id) {
-    const prev = markers.get(activeMarkerId);
-    if (prev) {
-        prev.getElement().classList.remove('active');
-    }
-    }
-    if (activeMarkerId && activeMarkerId !== b.id) {
-    const prev = markers.get(activeMarkerId);
-    if (prev) {
-        prev.getElement().classList.remove('active');
-    }
-    }
-    wrap.classList.add('active');
+  wrap.classList.remove('focus-blink');
+  void img.offsetWidth;
+  wrap.classList.add('focus-blink');
 
-    wrap.classList.remove('focus-blink');
-    void img.offsetWidth;
-    wrap.classList.add('focus-blink');
+  clearTimeout(marker._hideTimer);
+  marker._hideTimer = setTimeout(() => {
+    marker.remove();
+    marker._removed = true;
+  }, 600 * 6);
 
-    activeMarkerId = b.id;
+  activeMarkerId = b.id;
 }
 
 function resetMarkerVisual(marker) {
