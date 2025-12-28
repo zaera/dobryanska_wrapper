@@ -503,15 +503,24 @@ function focusBuilding(b, source = 'unknown') {
   wrap.style.opacity = '1';
   wrap.style.pointerEvents = 'auto';
 
-  wrap.classList.remove('focus-blink');
-  void img.offsetWidth;
-  wrap.classList.add('focus-blink');
+    if (activeMarkerId && activeMarkerId !== b.id) {
+        const prev = markers.get(activeMarkerId);
+        if (prev) {
+            prev.getElement().classList.remove('active');
+        }
+    }
+    if (activeMarkerId && activeMarkerId !== b.id) {
+        const prev = markers.get(activeMarkerId);
+        if (prev) {
+            prev.getElement().classList.remove('active');
+        }
+    }
+    wrap.classList.add('active');
 
-  clearTimeout(marker._hideTimer);
-  marker._hideTimer = setTimeout(() => {
-    marker.remove();
-    marker._removed = true;
-  }, 600 * 6);
+    rap.classList.remove('focus-blink');
+    void img.offsetWidth;
+    wrap.classList.add('focus-blink');
+
 
   activeMarkerId = b.id;
 }
