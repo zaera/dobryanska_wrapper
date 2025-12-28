@@ -152,7 +152,36 @@
     ovBody.appendChild(info);
 
     overlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      if (typeof b.lat === 'number' && typeof b.lng === 'number') {
+          const coords = document.createElement('div');
+
+          coords.style.marginTop = '12px';
+          coords.style.fontSize = '13px';
+          coords.style.color = 'var(--muted)';
+
+          /* ВАЖНО: тот же уровень, что у media / caption */
+          coords.style.padding = '0 2px';
+
+          const lat = b.lat.toFixed(6);
+          const lng = b.lng.toFixed(6);
+
+          const gmapsUrl =
+              `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+          coords.innerHTML = `
+        <strong>Координати:</strong>
+        <a href="${gmapsUrl}"
+           target="_blank"
+           rel="noopener noreferrer"
+           style="color: var(--accent); text-decoration: underline;">
+           ${lat}; ${lng}
+        </a>
+    `;
+
+          ovBody.appendChild(coords); // ← ниже ВСЕГО, как раньше
+      }
+
 
     galleryKeyHandler = (e)=>{ if (e.key === 'Escape') closeOverlay(); };
     window.addEventListener('keydown', galleryKeyHandler);
@@ -643,7 +672,6 @@ function resetMarkerVisual(marker) {
                 dots.forEach((d, i) => d.classList.toggle('active', i === ix));
             }
 
-            // точки
             dots = media.map((_, i) => {
                 const d = document.createElement('button');
                 d.className = 'g-dot';
