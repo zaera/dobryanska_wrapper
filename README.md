@@ -47,7 +47,7 @@ async function getMyHash(inputString) {
     return hash;
 }
 
-// Викличте для вашого логіна та пароля
+// Викличте для вашого логіна та пароля ці функції
 // getMyHash('ваш_логін');
 // getMyHash('ваш_пароль');
 ```
