@@ -172,8 +172,8 @@
             right: 20px;
             top: 50%;
             transform: translateY(-50%);
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -196,7 +196,7 @@
         }
 
         .user-btn .material-symbols-outlined {
-            font-size: 35px;
+            font-size: 25px;
             line-height: 1;
         }
 
@@ -566,7 +566,7 @@
             position: relative;
             width: clamp(720px, 80vw, 1400px);
             max-height: 85vh;
-            overflow: hidden; /* ВАЖНО */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             background: var(--bg-dark);
