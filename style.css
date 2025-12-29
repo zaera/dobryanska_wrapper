@@ -734,8 +734,9 @@
             display: flex;
             flex-direction: column;
             margin-top: 8px;
-            margin-left: calc(var(--g-arrow-width, 48px) + 10px);
-            margin-right: calc(var(--g-arrow-width, 48px) + 10px);
+            /* Убираем лишние расчеты отступов, если кнопки находятся ВНУТРИ вьюпорта */
+            margin-left: 0;
+            margin-right: 0;
         }
 
         .g-viewport {
@@ -762,16 +763,17 @@
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            border: 0px solid #fff;
+            border: 0;
             background: #ffffffda;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            z-index: 10;
         }
 
         .g-prev {
-            left: 10px;
+            left: 45px;
         }
 
         .g-next {
@@ -1260,18 +1262,3 @@
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
