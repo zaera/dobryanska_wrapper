@@ -23,7 +23,8 @@
         body {
             background-color: var(--bg-dark);
             color: var(--text-color);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             text-overflow: ellipsis;
         }
 
@@ -235,7 +236,7 @@
     opacity: 1;                 /* сразу видно */
     pointer-events: auto;
 
-    transition: none;           /* ⛔ без анимации по умолчанию */
+    transition: none;           /* ? без анимации по умолчанию */
     }
 
     /* просто показ (без анимации) */
@@ -447,7 +448,15 @@
             height: 10px;
             border-radius: 50%;
             background: var(--accent);
-            box-shadow: 0 0 0 3px rgba(150,150,150,.15)
+            box-shadow: 0 0 0 3px rgba(150,150,150,.15);
+            flex-shrink: 0;
+        }
+
+        .item.active .dot {
+            background: #ff2c2c;
+            box-shadow:
+            0 0 0 3px rgba(255, 196, 92, 1),
+            0 0 0 4px rgb(238, 32, 32);
         }
 
         .item .name {
@@ -460,15 +469,7 @@
             color: var(--muted)
         }
 
-#sidebar.collapsed {
-    width: 1px !important;
-    min-width: 1px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    overflow: visible !important;
-}
+
 
     #sidebar.collapsed .toggle {
         position: fixed !important;
@@ -563,18 +564,43 @@
 
         .modal {
             position: relative;
-            width: min(980px, 94vw);
-            max-height: min(88vh, 1000px);
-            overflow: auto;
+            width: clamp(720px, 80vw, 1400px);
+            max-height: 85vh;
+            overflow: hidden; /* ВАЖНО */
+            display: flex;
+            flex-direction: column;
             background: var(--bg-dark);
             color: var(--ink);
-            border: 1px solid var(--line);
+            border: none;
+
             border-radius: 24px;
-            box-shadow: var(--shadow);
+
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.45),
+                0 2px 10px rgba(0,0,0,.35); 
             padding: 22px 22px 18px;
             transform: translateY(14px) scale(.985);
             opacity: 0;
             transition: transform .70s cubic-bezier(.22,.61,.36,1), opacity .70s ease;
+        }
+
+        .modal-head {
+            position: relative;
+            padding: 0 0 14px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            padding-right: 6px;
+            flex: 1;
+        }
+
+        .modal-head .close {
+            position: absolute;
+            right: 0;
+            top: 0;
         }
 
         .overlay.show .modal {
@@ -701,9 +727,7 @@
                 grid-template-columns: 1fr;
             }
 
-            #sidebar.collapsed {
-                display: none !important;
-            }
+         
         }
         /* === Галерея === */
         .gallery {
@@ -751,7 +775,7 @@
         }
 
         .g-next {
-            right: 10px;
+            right: 45px;
         }
 
         .g-prev .material-symbols-outlined, .g-next .material-symbols-outlined {
@@ -1045,3 +1069,209 @@
 .mk-wrap.active .mk-img {
   content: url("media/marker_active.png");
 }
+
+.g-viewport {
+    position: relative;
+}
+
+.g-viewport > * {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateX(12px);
+    transition:
+        opacity 0.65s ease,
+        transform 0.65s ease;
+}
+
+.g-viewport > *.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+
+
+  /* Мобільні версіі дві шт 560 та 960 пікселів */
+
+@media (max-width: 560px) {
+
+  /* === MODAL === */
+  .modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  /* === HEADER === */
+  .header-text {
+    font-size: 14px;
+    line-height: 1.15;
+    font-weight: 500;
+  }
+
+  header h1 {
+    font-size: 14px;
+  }
+
+  header {
+    padding: 8px 12px;
+  }
+
+  #logo img {
+    height: 48px;
+  }
+
+  .divider {
+    height: 40px;
+  }
+
+  /* === USER BUTTON === */
+  .user-btn {
+    display: none !important;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  /* === GALLERY === */
+  .g-prev,
+  .g-next {
+    display: none;
+  }
+
+  /* === LAYOUT HEIGHT === */
+  main,
+  .main {
+    height: 92dvh;
+  }
+
+  .map-card,
+  #sidebar {
+    height: auto;
+    min-height: 92%;
+  }
+
+}
+
+@media (max-width: 960px) {
+
+  /* === BODY === */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* === MAIN GRID === */
+  .main,
+  body.sb-collapsed .main {
+    grid-template-columns: 1fr !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  
+
+  /* === SIDEBAR OVERLAY === */
+  #sidebar {
+    position: fixed;
+    top: 64px;
+    left: -100%;
+    height: calc(100vh - 64px);
+    width: 86vw;
+    max-width: 360px;
+    z-index: 1000;
+    transition: left 0.3s ease;
+
+    box-shadow:
+      0 10px 30px rgba(0,0,0,.45),
+      0 2px 10px rgba(0,0,0,.35);
+  }
+
+  body.sb-collapsed #sidebar {
+    left: 0;
+  }
+
+  /* === ОТКЛЮЧАЕМ DESKTOP-COLLAPSED === */
+  #sidebar.collapsed {
+    width: auto !important;
+    min-width: auto !important;
+    padding: 14px !important;
+    background: var(--paper) !important;
+  }
+
+  #sidebar.collapsed .sb-head,
+  #sidebar.collapsed .search,
+  #sidebar.collapsed .list {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* === TOGGLE BUTTON === */
+  body:not(.sb-collapsed) #sidebar .toggle {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2000;
+
+    width: 42px;
+    height: 42px;
+    border-radius: 0 12px 12px 0;
+    background: var(--accent);
+    box-shadow: 4px 0 14px rgba(0,0,0,.45);
+  }
+
+  body.sb-collapsed #sidebar .toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  /* === TOGGLE ICON === */
+  #sidebar .toggle .material-symbols-outlined {
+    color: transparent;
+    position: relative;
+  }
+
+  #sidebar .toggle .material-symbols-outlined::before {
+    font-family: 'Material Symbols Outlined';
+    font-size: 20px;
+    color: #000;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body:not(.sb-collapsed)
+  #sidebar .toggle .material-symbols-outlined::before {
+    content: "chevron_right";
+  }
+
+  body.sb-collapsed
+  #sidebar .toggle .material-symbols-outlined::before {
+    content: "chevron_left";
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

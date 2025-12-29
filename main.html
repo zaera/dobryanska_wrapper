@@ -38,12 +38,20 @@
   <!-- OVERLAY (попап) -->
   <div id="overlay" class="overlay" role="dialog" aria-modal="true">
     <div class="modal">
-      <button id="ovClose" class="close" title="Закрити"><span class="material-symbols-outlined">close</span></button>
-      <h2 id="ovTitle">Будівля</h2>
-      <div id="ovSub" class="muted"></div>
-      <div id="ovBody" class="body"></div>
-    </div>
+  <div class="modal-head">
+    <h2 id="ovTitle"></h2>
+    <div id="ovSub" class="muted"></div>
+
+    <button class="close" title="Закрити">
+      <span class="material-symbols-outlined">close</span>
+    </button>
   </div>
+
+  <div id="ovBody" class="modal-body"></div>
+</div>
+  </div>
+
+
 
   <header>
       <div class="header-left">
@@ -94,7 +102,7 @@
     </section>
   </div>
 
-  <footer><div class="foot">ДНЛІТ 2025</div></footer>
+ 
 </div>
 
 <script>
@@ -105,7 +113,7 @@
   const listEl = $('#list'); const searchEl = $('#search');
   const overlay = $('#overlay'); const ovTitle = $('#ovTitle');
   const ovSub = $('#ovSub'); const ovBody = $('#ovBody');
-  const ovClose = $('#ovClose'); const sidebar = $('#sidebar');
+  const ovClose = document.querySelector('.modal .close'); const sidebar = $('#sidebar');
   const main = document.querySelector('.main'); const btnToggle = $('#btnToggle');
   const loader = $('#loader');
         // Згортання сайдбару
@@ -483,6 +491,14 @@ wrap.addEventListener('click', (e) => {
       .start();
   }
 
+//підсвічування елемента списку червоним при фокусі на будівлі
+function setActiveListItem(buildingId) {
+  document.querySelectorAll('#list .item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id == buildingId);
+  });
+}
+
+
 function focusBuilding(b, source = 'unknown') {
     if (activeMarkerId && activeMarkerId !== b.id) {
     const prev = markers.get(activeMarkerId);
@@ -531,6 +547,7 @@ function focusBuilding(b, source = 'unknown') {
 
 
   activeMarkerId = b.id;
+  setActiveListItem(b.id);
 }
 
 function resetMarkerVisual(marker) {
@@ -607,7 +624,8 @@ function resetMarkerVisual(marker) {
       .filter(b => !q || b.name.toLowerCase().includes(q) || (b.note||'').toLowerCase().includes(q))
       .forEach(b=>{
         const row = document.createElement('div');
-        row.className='item';
+        row.className = 'item';
+        row.dataset.id = b.id;
         row.innerHTML = `<div class="dot"></div>
           <div style="display:flex;flex-direction:column;min-width:0">
             <div class="name">${b.name}</div>
@@ -670,11 +688,16 @@ function resetMarkerVisual(marker) {
             function show(n) {
                 ix = (n + media.length) % media.length;
 
+                const node = nodeFor(media[ix]);
                 viewport.innerHTML = '';
-                viewport.appendChild(nodeFor(media[ix]));
+                viewport.appendChild(node);
+
+                // принудительный reflow
+                void node.offsetWidth;
+
+                node.classList.add('active');
 
                 caption.textContent = media[ix].caption || '';
-
                 dots.forEach((d, i) => d.classList.toggle('active', i === ix));
             }
 
