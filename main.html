@@ -113,7 +113,6 @@
 <script>
     
     (function () {
-        console.log("main script");
   const $ = (s, root=document)=>root.querySelector(s);
   const listEl = $('#list'); const searchEl = $('#search');
   const overlay = $('#overlay'); const ovTitle = $('#ovTitle');
@@ -459,7 +458,6 @@ wrap.addEventListener('click', (e) => {
   return marker;
 }
     function ensureModel(b) {
-        console.log('ensureModel');
     if(!b.modelUrl || models.has(b.id) || !tbLayerReady) return;
     tb.loadObj(
       { type:'gltf', obj:b.modelUrl, scale:b.scale||8, units:'meters',
@@ -622,7 +620,6 @@ function resetMarkerVisual(marker) {
 
   // ==== список у сайдбарі ====
     function renderList(filter = '') {
-        console.log("renderList");
     listEl.innerHTML='';
     const q = filter.trim().toLowerCase();
     buildings
