@@ -2,220 +2,252 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Довідка у стані розробки</title>
+    <title>Галерея</title>
     <link rel="icon" type="image/png" href="logo.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/examples/js/loaders/GLTFLoader.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
     <style>
         :root {
             --bg: #1A1A1A;
             --paper: #222526;
             --ink: #d7d7d7;
-            --accent: #E0E0E0;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: "e-Ukraine", "Inter", sans-serif;
+            --accent: #5e76fa;
+            --text-muted: #8a90a8;
+            --overlay-bg: rgba(0, 0, 0, 0.7);
         }
 
         body {
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(120deg, var(--bg), var(--paper), var(--bg));
-            background-size: 400% 400%;
-            animation: gradientMove 10s ease infinite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-color: #000; /* Чорний фон для повного екрану */
             color: var(--ink);
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Прибираємо скрол */
         }
 
-        @keyframes gradientMove {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        /* Анімація завантаження */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* --- Стилі Галереї (Full Screen) --- */
+        .gallery {
+            position: absolute;
+            inset: 0; /* Розтягує на весь батьківський елемент (body) */
             width: 100%;
             height: 100%;
-            background: var(--bg);
+            background: #000;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.8s ease-out;
+            flex-direction: column;
         }
 
-            .loading-screen.fade-out {
-                opacity: 0;
-                pointer-events: none;
-            }
-
-        .loading-text {
-            font-size: calc(4vw + 20px);
-            font-weight: 600;
-            color: var(--accent);
-            text-align: center;
+        /* Область перегляду зображення/відео */
+        .g-viewport {
+            flex: 1;
             position: relative;
+            background: #000;
             overflow: hidden;
         }
 
-            .loading-text::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
+            .g-viewport img,
+            .g-viewport iframe {
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-                animation: shimmer 2.5s infinite;
-            }
-
-        .char {
-            display: inline-block;
-            opacity: 0;
-            transform: translateY(30px) rotateX(90deg);
-            filter: blur(10px);
-        }
-
-        .word {
-            display: inline-block;
-            margin-right: 0.3em;
-        }
-
-        @keyframes shimmer {
-            0% {
-                left: -100%;
-            }
-
-            100% {
-                left: 100%;
-            }
-        }
-
-        @keyframes charAppear {
-            0% {
+                object-fit: contain;
+                display: block;
+                position: absolute; /* Всі фото в одній позиції */
+                inset: 0;
                 opacity: 0;
-                transform: translateY(30px) rotateX(90deg);
-                filter: blur(10px);
+                transition: opacity 0.5s ease-in-out; /* Плавний перехід */
+                z-index: 1;
             }
 
-            50% {
+            /* Нове фото стає поверх інших і плавно проявляється */
+            .g-viewport .active {
                 opacity: 1;
-                transform: translateY(-5px) rotateX(0deg);
-                filter: blur(0px);
+                z-index: 2;
             }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0) rotateX(0deg);
-                filter: blur(0px);
-            }
-        }
-
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            font-size: calc(4vw + 20px);
-            color: var(--accent);
-            z-index: 10;
-            position: relative;
-            text-shadow: 0 0 20px rgba(255,255,255,0.1);
-            user-select: none;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.8s ease-out;
-        }
-
-            h1.fade-in {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-        canvas {
+        /* Кнопки Назад/Вперед */
+        .g-prev, .g-next {
             position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0;
-            transition: opacity 1s ease-out;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
         }
 
-            canvas.fade-in {
-                opacity: 1;
+            .g-prev:hover, .g-next:hover {
+                background: var(--accent);
+                transform: translateY(-50%) scale(1.1);
+            }
+
+        .g-prev {
+            left: 20px;
+        }
+
+        .g-next {
+            right: 20px;
+        }
+
+            /* Збільшуємо іконки стрілок */
+            .g-prev span, .g-next span {
+                font-size: 32px;
+            }
+
+        /* Нижній блок з підписом та точками */
+        .g-bottom-bar {
+            background: var(--paper);
+            z-index: 10;
+            padding-bottom: 20px; /* Відступ знизу для естетики */
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Підпис */
+        .g-caption {
+            padding: 15px 20px;
+            color: var(--ink);
+            font-size: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Навігаційні точки */
+        .g-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 12px;
+            background: var(--paper); /* Фон нижньої панелі */
+        }
+
+        .g-dot {
+            width: 12px;
+            height: 12px;
+            min-width: 12px; /* Гарантує, що не стиснеться */
+            min-height: 12px;
+            border-radius: 50%; /* Робить ідеальне коло */
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+            .g-dot:hover {
+                background: rgba(255, 255, 255, 0.5);
+            }
+
+            .g-dot.active {
+                background: var(--accent);
+                transform: none;
             }
     </style>
 </head>
 <body>
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-text" id="loadingText">Документація у стані розробки</div>
-    </div>
-
-    <h1 id="mainTitle">Документація у стані розробки</h1>
-    <canvas id="scene"></canvas>
 
     <script>
-        // Функція для анімації тексту
-        function animateText() {
-            const loadingText = document.getElementById('loadingText');
-            const text = loadingText.textContent;
-            const words = text.split(' ');
+        function buildGallery(media) {
+            const wrap = document.createElement('div');
+            wrap.className = 'gallery';
 
-            loadingText.innerHTML = '';
+            const viewport = document.createElement('div');
+            viewport.className = 'g-viewport';
 
-            words.forEach((word, wordIndex) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word';
+            const dotsWrap = document.createElement('div');
+            dotsWrap.className = 'g-dots';
 
-                for (let i = 0; i < word.length; i++) {
-                    const charSpan = document.createElement('span');
-                    charSpan.className = 'char';
-                    charSpan.textContent = word[i];
-                    charSpan.style.animation = `charAppear 0.6s ease-out ${(wordIndex * 0.3 + i * 0.1)}s forwards`;
-                    wordSpan.appendChild(charSpan);
-                }
+            // Кнопки навігації
+            const btnPrev = document.createElement('button');
+            btnPrev.className = 'g-prev';
+            btnPrev.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
 
-                loadingText.appendChild(wordSpan);
-                // Додаємо пробіл між словами
-                if (wordIndex < words.length - 1) {
-                    loadingText.appendChild(document.createTextNode(' '));
-                }
+            const btnNext = document.createElement('button');
+            btnNext.className = 'g-next';
+            btnNext.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+
+            let ix = 0;
+            let dots = [];
+
+            // Функція створення тільки для зображень
+            function nodeFor(item) {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = '';
+                return img;
+            }
+
+            function show(n) {
+                ix = (n + media.length) % media.length;
+                viewport.innerHTML = '';
+                const node = nodeFor(media[ix]);
+                viewport.appendChild(node);
+
+                // Плавна поява
+                setTimeout(() => node.classList.add('active'), 10);
+
+                dots.forEach((d, i) => d.classList.toggle('active', i === ix));
+            }
+
+            // Створення точок
+            dots = media.map((_, i) => {
+                const d = document.createElement('button');
+                d.className = 'g-dot';
+                d.addEventListener('click', () => show(i));
+                dotsWrap.appendChild(d);
+                return d;
             });
+
+            btnPrev.addEventListener('click', () => show(ix - 1));
+            btnNext.addEventListener('click', () => show(ix + 1));
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') show(ix - 1);
+                if (e.key === 'ArrowRight') show(ix + 1);
+            });
+
+            wrap.append(viewport, btnPrev, btnNext, dotsWrap);
+            show(0);
+
+            return { el: wrap };
         }
 
-        // Запуск анімації
-        window.addEventListener('load', () => {
-            animateText();
-            completeLoading();
+        // Ініціалізація тільки з картинками
+        document.addEventListener('DOMContentLoaded', () => {
+            const tutorialMedia = [];
+            for (let i = 1; i <= 24; i++) {
+                tutorialMedia.push({ src: `tutorial/${i}.png` });
+            }
+            const galleryInstance = buildGallery(tutorialMedia);
+            document.body.appendChild(galleryInstance.el);
         });
-        // Адаптація під розмір екрана
-        window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+
+        // === Ініціалізація ===
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Створюємо масив медіа автоматично для картинок
+            const tutorialMedia = [];
+            for (let i = 1; i <= 24; i++) {
+                tutorialMedia.push({
+                    type: 'image',
+                    src: `tutorial/${i}.png`,
+                });
+            }
+
+            // Додаємо галерею безпосередньо в body
+            const galleryInstance = buildGallery(tutorialMedia);
+            document.body.appendChild(galleryInstance.el);
         });
     </script>
 </body>
