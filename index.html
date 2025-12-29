@@ -22,7 +22,7 @@
 
         @font-face {
             font-family: "e-Ukraine";
-            src: url("../fonts/e-UkraineHead-Regular.otf") format("e-Ukraine-Regular"), url("../fonts/e-UkraineHead-LOGO.otf") format("e-Ukraine-Logo");
+            src: url("../fonts/e-UkraineHead-Regular.otf") format("opentype");
             font-weight: normal;
             font-style: normal;
             font-display: swap;
@@ -30,7 +30,7 @@
 
         @font-face {
             font-family: "e-Ukraine-Bold";
-            src: url("../fonts/e-UkraineHead-Bold.otf") format("e-Ukraine-Bold");
+            src: url("../fonts/e-UkraineHead-Bold.otf") format("opentype");
             font-weight: bold;
             font-style: normal;
             font-display: swap;
@@ -47,13 +47,12 @@
             background-color: var(--bg);
             color: var(--ink);
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         /* ===== ОСНОВНІ СТИЛІ ДЛЯ ЕФЕКТУ ВИРІЗАННЯ ===== */
         .container {
             position: relative;
-            width: 60%;
+            width: 70%;
             height: 100vh;
             overflow: hidden;
         }
@@ -63,6 +62,9 @@
             inset: 0;
             background: url("../menu/Colored-BuildingVer.png") center/cover no-repeat;
             z-index: 0;
+            /* Розтягуємо фото */
+            background-size: cover;
+            background-position: center;
         }
 
         .mask {
@@ -72,6 +74,9 @@
             clip-path: inset(0 50% 0 0);
             transition: clip-path 0.1s ease-out;
             z-index: 1;
+            /* Розтягуємо фото */
+            background-size: cover;
+            background-position: center;
         }
 
         /* ===== ПРАВА ПАНЕЛЬ ===== */
@@ -79,9 +84,9 @@
             position: fixed;
             top: 0;
             right: 0;
-            width: 40%;
+            width: 30%;
             height: 100vh;
-            background: rgba(34, 37, 38, 0.95);
+            background: linear-gradient(to bottom, rgba(44, 47, 48, 0.95), rgba(24, 27, 28, 0.95));
             backdrop-filter: blur(10px);
             border-left: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
@@ -92,7 +97,6 @@
 
         .panel-header {
             margin-bottom: 50px;
-            text-align: center;
         }
 
             .panel-header h2 {
@@ -101,6 +105,7 @@
                 font-weight: 600;
                 margin-bottom: 15px;
                 line-height: 1.3;
+                text-align: center;
             }
 
             .panel-header p {
@@ -109,13 +114,33 @@
                 line-height: 1.5;
             }
 
+        .author-info {
+            text-align: right;
+            margin-top: 30px;
+            font-size: 1.4rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .project-title {
+            font-size: 2.0rem;
+            color: var(--accent);
+            text-align: center;
+            margin: 20px 0;
+            line-height: 1.4;
+        }
+
         .buttons-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
             flex-grow: 1;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 40%;
+            /*padding-bottom: 20px;*/
+            margin-top: -200px;
         }
+
 
         .panel-btn {
             width: 100%;
@@ -199,17 +224,9 @@
                 padding: 40px 15px;
             }
 
-            .text-container {
-                padding-left: 5%;
-            }
-
-            .text {
-                font-size: calc(25vw + 10px);
-            }
-
-            .panel-btn {
-                font-size: 1.3rem;
-                padding: 18px 20px;
+            .background,
+            .mask {
+                transform: scale(1.02);
             }
         }
     </style>
@@ -223,18 +240,24 @@
     <!-- Права панель з кнопками -->
     <div class="right-panel">
         <div class="panel-header">
-            <h2 style="text-align: center">Пам'ятки архітектури<br>національного значення в Дніпрі</h2>
-            <p>Добрянська Крістіна<br>ЛІТ 2025</p>
+            <h2>Історичні пам’ятки архітектури національного значення м. Дніпра</h2>
+            <p class="project-title">Дніпровський науковий ліцей інформаційних технологій<br>Дніпровської міської ради</p>
+            <p class="author-info">
+                Виконавець:<br>
+                ліцеїстка 11-Г-1 класу<br>
+                Добрянська Крістіна<br><br>
+                Керівник роботи:<br>
+                Заєрко Олександр Валерійович
+            </p>
+            <p style="text-align: center;">
+                Дніпро<br>
+                2025
+            </p>
         </div>
         <div class="buttons-container">
-            <!-- Додаємо ID для кнопки -->
             <a href="/main.html" class="panel-btn" id="graduationBtn">
                 <span class="material-symbols-outlined">school</span>
                 До випускної роботи
-            </a>
-            <a href="/documentation.html" class="panel-btn">
-                <span class="material-symbols-outlined">description</span>
-                Перейти до довідки
             </a>
         </div>
     </div>
