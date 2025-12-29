@@ -756,6 +756,31 @@ window.BUILDINGS = [
         "type": "image",
         "src": "media/Spaso-Preobr-Sobor3.webp",
         "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Spaso-Preobr-Sobor4.jpeg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Spaso-Preobr-Sobor5.jpeg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Spaso-Preobr-Sobor6.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Spaso-Preobr-Sobor7.jpeg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Spaso-Preobr-Sobor8.webp",
+        "caption": ""
       }
     ],
     "modelUrl": "models/Tserkov-Preobrazhenka.glb",
