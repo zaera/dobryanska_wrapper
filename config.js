@@ -1,19 +1,15 @@
-// config.js
-// Полностью рабочие поля, без плейсхолдеров.
-// Если у тебя уже был window.config.accessToken — оставил совместимость.
-
 window.config = window.config || {};
 window.config.accessToken = window.config.accessToken || (window.MAPBOX_TOKEN || '');
 
-// Единый объект с настройками карты
+// Налаштування мапи
 window.APP_CONFIG = {
   accessToken: window.config.accessToken,
   map: {
     // два стиля между которыми переключаемся
-    styleA: 'mapbox://styles/mapbox/dark-v11',              // Карта (OSM-производный стиль Mapbox)\
-    styleB: 'mapbox://styles/mapbox/satellite-v9',          // Спутник
+    styleA: 'mapbox://styles/mapbox/dark-v11',              // Карта
+    styleB: 'mapbox://styles/mapbox/satellite-v9',          // Супутник
 
-    // стартовое положение камеры
+    // стартовое положення камери
     center: [35.0460, 48.4647],
     zoom: 14.5,
     pitch: 50,
