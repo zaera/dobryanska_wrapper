@@ -32,6 +32,26 @@ window.BUILDINGS = [
         "type": "image",
         "src": "media/Theatre-Schevchenka-5.jpg",
         "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Theatre-Schevchenka-6.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Theatre-Schevchenka-7.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Theatre-Schevchenka-8.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Theatre-Schevchenka-9.webp",
+        "caption": ""
       }
     ],
     "modelUrl": "models/EnglishClub.glb",
@@ -111,6 +131,21 @@ window.BUILDINGS = [
       {
         "type": "image",
         "src": "media/Astoria-5.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Astoria-6.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Astoria-7.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/Astoria-8.jpg",
         "caption": ""
       }
     ],
@@ -595,8 +630,49 @@ window.BUILDINGS = [
     "lng": 35.028917,
     "lat": 48.46703,
     "alt": -2,
-    "infoHtml": "",
-    "media": [],
+    "infoHtml": "<p>\n\nБудівля Дніпропетровської обласної ради - це символ адміністративного центру регіону та важлива архітектурна складова площі поблизу скверу Героїв. Зведена у стилі радянського неокласицизму, вона вражає своєю монументальністю та строгістю форм. Високі колони та масивний фасад підкреслюють статусність споруди, яка вже багато десятиліть є місцем прийняття ключових рішень для розвитку Придніпров’я.<br>\nНавколо будівлі розкинувся мальовничий сквер, що створює гармонійний контраст між офіційною діловитістю та затишком міського простору. <br>Сьогодні облрада - це не лише адміністративний об'єкт, а й частина сучасного історичного ландшафту Дніпра. Вона нагадує про складний шлях державотворення та важливість місцевого самоврядування. Для мешканців та гостей міста цей архітектурний ансамбль залишається орієнтиром стабільності та неперервного розвитку обласного центру.\n</p>",
+    "media": [
+      {
+        "type": "image",
+        "src": "media/obl-1.jpeg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-2.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-3.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-4.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-5.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-6.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-7.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/obl-8.jpg",
+        "caption": ""
+      }
+    ],
     "modelUrl": "models/DniprovskaOblasnaRada.glb",
     "scale": 3.1,
     "rotX": 90,
