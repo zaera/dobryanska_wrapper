@@ -401,9 +401,18 @@
   let loadedCount = 0;
   if (totalToLoad > 0) loader.classList.add('show');
 
-  function checkLoaded(){
-    if (loadedCount >= totalToLoad) loader.classList.remove('show');
+function checkLoaded(){
+  if (loadedCount >= totalToLoad) {
+    loader.classList.add('fade-out');
+
+    loader.addEventListener('transitionend', () => {
+      loader.classList.remove('show');
+      loader.classList.remove('fade-out');
+      loader.style.display = 'none';
+    }, { once: true });
   }
+}
+
 
 function upsertMarker(b) {
   if (markers.has(b.id)) return markers.get(b.id);
