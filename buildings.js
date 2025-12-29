@@ -276,7 +276,38 @@ window.BUILDINGS = [
     "lat": 48.466616,
     "alt": -1,
     "infoHtml": "",
-    "media": [],
+    "media": [
+      {
+        "type": "youtube",
+        "videoId": "QH90uQUW7FY",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/BudHub-1.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/BudHub-3.webp",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/BudHub-7.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/BudHub-8.jpg",
+        "caption": ""
+      },
+      {
+        "type": "image",
+        "src": "media/BudHub-9.webp",
+        "caption": ""
+      }
+    ],
     "modelUrl": "models/Dim-Gubernatora.glb",
     "scale": 0.5,
     "rotX": 90,
