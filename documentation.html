@@ -67,6 +67,19 @@
                 opacity: 1;
                 z-index: 2;
             }
+            .g-viewport::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: #000;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                z-index: 5;
+                pointer-events: none;
+            }
+            .g-viewport.fading::after {
+                opacity: 1;
+            }
         /* Кнопки Назад/Вперед */
         .g-prev, .g-next {
             position: absolute;
@@ -189,15 +202,20 @@
             }
 
             function show(n) {
-                ix = (n + media.length) % media.length;
-                viewport.innerHTML = '';
-                const node = nodeFor(media[ix]);
-                viewport.appendChild(node);
+                const nextIx = (n + media.length) % media.length;
+                viewport.classList.add('fading');
+                setTimeout(() => {
+                    ix = nextIx;
+                    viewport.innerHTML = '';
+                    const node = nodeFor(media[ix]);
+                    viewport.appendChild(node);
+                    setTimeout(() => {
+                        node.classList.add('active');
+                        viewport.classList.remove('fading');
+                    }, 50);
 
-                // Плавна поява
-                setTimeout(() => node.classList.add('active'), 10);
-
-                dots.forEach((d, i) => d.classList.toggle('active', i === ix));
+                    dots.forEach((d, i) => d.classList.toggle('active', i === ix));
+                }, 300);
             }
 
             // Створення точок
