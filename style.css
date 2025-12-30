@@ -342,8 +342,8 @@
 
 @font-face {
     font-family: "e-Ukraine";
-    src: url("../fonts/e-UkraineHead-Regular.otf") format("e-Ukraine-Regular"), url("../fonts/e-UkraineHead-LOGO.otf") format("e-Ukraine-Logo");
-    font-weight: normal;
+    src: url("/fonts/e-UkraineHead-Regular.otf") format("opentype");
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
@@ -352,7 +352,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: "e-Ukraine Head", Roboto, Arial, sans-serif;
+    font-family: "e-Ukraine", Roboto, Arial, sans-serif;
 }
 
 body {
@@ -448,12 +448,14 @@ body.sb-collapsed {
     --sb-w: 88px;
 }
 
+
 html, body {
     height: 100%;
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: Inter,system-ui,Arial,sans-serif
+    font-size: 14.5px;
+    font-family: "e-Ukraine", Inter, system-ui, Arial, sans-serif;
 }
 
 #app {
@@ -470,6 +472,7 @@ html, body {
             padding: 16px;
             transition: grid-template-columns .25s ease;
             text-overflow: ellipsis;
+            
         }
 
         @media (max-width: 960px) {
@@ -484,7 +487,7 @@ html, body {
             border: 0 solid var(--line);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            height: calc(100vh - 64px - 64px - 32px);
+            
             padding: 14px;
             position: relative;
             overflow: hidden;
@@ -618,7 +621,7 @@ html, body {
             box-shadow: var(--shadow);
             background: var(--paper);
             border: 0px solid var(--line);
-            height: calc(100vh - 64px - 64px - 32px)
+            
         }
 
         #map {
@@ -774,7 +777,6 @@ html, body {
             border: 0 solid var(--line);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            height: calc(100vh - 64px - 64px - 32px);
             padding: 14px;
             position: relative;
             overflow: hidden;
@@ -1272,7 +1274,7 @@ html, body {
   .map-card,
   #sidebar {
     height: auto;
-    min-height: 92%;
+    height: 100%;
   }
 
 }
@@ -1384,3 +1386,40 @@ html, body {
   }
 
 }
+@media (max-width: 560px) {
+  .nar-wave-wrap {
+    display: none !important;
+  }
+}
+@media (max-width: 560px) {
+
+  .nar-player {
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    width: 48px;
+    height: 48px;
+    padding: 0;
+
+    border-radius: 50%;
+    justify-content: center;
+    background: var(--bg-medium);
+    box-shadow: 0 5px 14px rgba(0,0,0,.45);
+
+    transform: translateY(-45px); 
+  }
+
+  .nar-btn {
+    width: 36px;      
+    height: 36px;
+    border-radius: 50%;
+  } 
+
+  .nar-btn .material-symbols-outlined {
+    font-size: 20px; 
+  }
+
+}
+
+
