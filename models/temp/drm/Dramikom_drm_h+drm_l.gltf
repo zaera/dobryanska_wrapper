@@ -1,0 +1,205 @@
+{
+    "asset" : {
+        "copyright" : "CONCEPT3D",
+        "generator" : "Khronos glTF Blender I/O v3.3.36",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "cd742070-8114-4ad5-b0bb-569a8021d904",
+            "rotation" : [
+                0,
+                -0.7071067094802856,
+                0.7071068286895752,
+                3.0908616110991716e-08
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "cd742070-8114-4ad5-b0bb-569a8021d904",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "fcc88c84-e821-40a7-8520-37694fcf0c78",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 1
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Dramikom_drm_h+drm_l_l.002",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "TEXCOORD_0" : 1
+                    },
+                    "indices" : 2,
+                    "material" : 0
+                },
+                {
+                    "attributes" : {
+                        "POSITION" : 3,
+                        "TEXCOORD_0" : 4
+                    },
+                    "indices" : 5,
+                    "material" : 1
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        },
+        {
+            "sampler" : 0,
+            "source" : 1
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "cd742070-8114-4ad5-b0bb-569a8021d904",
+            "uri" : "cd742070-8114-4ad5-b0bb-569a8021d904_combined.jpg"
+        },
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "fcc88c84-e821-40a7-8520-37694fcf0c78",
+            "uri" : "fcc88c84-e821-40a7-8520-37694fcf0c78_combined.jpg"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 1603,
+            "max" : [
+                33.646541595458984,
+                12.864543914794922,
+                -1.9073486328125e-06
+            ],
+            "min" : [
+                -33.646541595458984,
+                -12.864557266235352,
+                -24.760162353515625
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 1603,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5123,
+            "count" : 3381,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5126,
+            "count" : 1898,
+            "max" : [
+                33.646541595458984,
+                12.864544868469238,
+                -1.8477439880371094e-06
+            ],
+            "min" : [
+                -33.364681243896484,
+                -12.864553451538086,
+                -24.760160446166992
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 1898,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5123,
+            "count" : 4932,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 19236,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 12824,
+            "byteOffset" : 19236,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 6762,
+            "byteOffset" : 32060,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 22776,
+            "byteOffset" : 38824,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 15184,
+            "byteOffset" : 61600,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 9864,
+            "byteOffset" : 76784,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 86648,
+            "uri" : "Dramikom_drm_h+drm_l.bin"
+        }
+    ]
+}
