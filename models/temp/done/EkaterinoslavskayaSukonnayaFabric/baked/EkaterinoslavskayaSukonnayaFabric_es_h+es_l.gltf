@@ -1,0 +1,279 @@
+{
+    "asset" : {
+        "copyright" : "CONCEPT3D",
+        "generator" : "Khronos glTF Blender I/O v3.3.36",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "ddfe7c33-6e21-4a44-987f-ed73d40942d8",
+            "rotation" : [
+                0,
+                -0.7071067094802856,
+                0.7071068286895752,
+                3.0908616110991716e-08
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "ddfe7c33-6e21-4a44-987f-ed73d40942d8",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "7a30b3b8-4473-41d9-a4da-c0a292606a79",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 1
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "c23156e1-ceee-43cc-8623-cbf89f4fae31",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 2
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "EkaterinoslavskayaSukonnayaFabric_es_h+es_l_l.002",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "TEXCOORD_0" : 1
+                    },
+                    "indices" : 2,
+                    "material" : 0
+                },
+                {
+                    "attributes" : {
+                        "POSITION" : 3,
+                        "TEXCOORD_0" : 4
+                    },
+                    "indices" : 5,
+                    "material" : 1
+                },
+                {
+                    "attributes" : {
+                        "POSITION" : 6,
+                        "TEXCOORD_0" : 7
+                    },
+                    "indices" : 8,
+                    "material" : 2
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        },
+        {
+            "sampler" : 0,
+            "source" : 1
+        },
+        {
+            "sampler" : 0,
+            "source" : 2
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "ddfe7c33-6e21-4a44-987f-ed73d40942d8",
+            "uri" : "ddfe7c33-6e21-4a44-987f-ed73d40942d8_combined.jpg"
+        },
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "7a30b3b8-4473-41d9-a4da-c0a292606a79",
+            "uri" : "7a30b3b8-4473-41d9-a4da-c0a292606a79_combined.jpg"
+        },
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "c23156e1-ceee-43cc-8623-cbf89f4fae31",
+            "uri" : "c23156e1-ceee-43cc-8623-cbf89f4fae31_combined.jpg"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 3571,
+            "max" : [
+                44.868247985839844,
+                14.508800506591797,
+                -1.9493854779284447e-06
+            ],
+            "min" : [
+                -23.892610549926758,
+                -14.508798599243164,
+                -19.40260124206543
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 3571,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5123,
+            "count" : 6804,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5126,
+            "count" : 4003,
+            "max" : [
+                44.868247985839844,
+                14.508798599243164,
+                -1.9493854779284447e-06
+            ],
+            "min" : [
+                -23.707487106323242,
+                -14.508798599243164,
+                -18.45439910888672
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 4003,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5123,
+            "count" : 8001,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 3711,
+            "max" : [
+                44.868247985839844,
+                14.508798599243164,
+                -1.9493854779284447e-06
+            ],
+            "min" : [
+                -44.868247985839844,
+                -14.508798599243164,
+                -19.402599334716797
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5126,
+            "count" : 3711,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 8,
+            "componentType" : 5123,
+            "count" : 7251,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 42852,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 28568,
+            "byteOffset" : 42852,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 13608,
+            "byteOffset" : 71420,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 48036,
+            "byteOffset" : 85028,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 32024,
+            "byteOffset" : 133064,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 16002,
+            "byteOffset" : 165088,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 44532,
+            "byteOffset" : 181092,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 29688,
+            "byteOffset" : 225624,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 14502,
+            "byteOffset" : 255312,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 269816,
+            "uri" : "EkaterinoslavskayaSukonnayaFabric_es_h+es_l.bin"
+        }
+    ]
+}
