@@ -402,8 +402,149 @@
     });
     tbLayerReady = true;
     syncTbViewport();
-    initOnce();
+      initOnce();
+      loadTramAndPath();
   });
+
+        // ==== ТРАМВАЙ ====
+        let tramModel = null;
+        let tramPath = [];
+        let tramIndex = 0;
+        let tramProgress = 0; // прогрес між точками (0-1)
+        const tramRouteDurationSeconds = 120; // час проходження всього маршруту в секундах
+        let tramRotationOffset = 0; // корекція кута повороту (в градусах), якщо модель орієнтована не так
+
+        async function loadTramAndPath() {
+            try {
+                // 1. Завантажуємо шлях
+                const res = await fetch('path.json?' + Date.now()); // додаємо timestamp для уникнення кешу
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Response text:', text.substring(0, 200));
+                    throw new Error('Invalid JSON: ' + parseError.message);
+                }
+                if (!data || !Array.isArray(data.points) || data.points.length < 2) {
+                    throw new Error('Invalid path data');
+                }
+                tramPath = data.points;
+
+                // 2. Завантажуємо модель трамваю
+                tb.loadObj(
+                    {
+                        type: 'gltf',
+                        obj: 'models/tram.glb',   // ← ШЛЯХ ДО ТРАМВАЮ
+                        scale: 3,
+                        units: 'meters',
+                        anchor: 'center',
+                        rotation: {x: 90, y: 0, z: 0}
+                    },
+                    (obj) => {
+                        tramModel = obj;
+                        tramModel.setCoords(tramPath[0]);
+                        tb.add(tramModel);
+
+                        animateTram();
+                    },
+                    (err) => {
+                        console.error('Error loading tram model:', err);
+                    }
+                );
+            } catch (error) {
+                console.error('Error loading tram path:', error);
+            }
+        }
+        function bearingBetween(p1, p2) {
+            const lng1 = THREE.MathUtils.degToRad(p1[0]);
+            const lat1 = THREE.MathUtils.degToRad(p1[1]);
+            const lng2 = THREE.MathUtils.degToRad(p2[0]);
+            const lat2 = THREE.MathUtils.degToRad(p2[1]);
+
+            const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
+            const x =
+                Math.cos(lat1) * Math.sin(lat2) -
+                Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
+
+            return THREE.MathUtils.radToDeg(Math.atan2(y, x));
+        }
+        function animateTram() {
+            if (!tramModel || tramPath.length < 2) return;
+
+            // Швидкість: весь маршрут (усі сегменти) проходимо за tramRouteDurationSeconds секунд
+            const segmentCount = tramPath.length - 1;
+            const segmentProgressPerSecond = segmentCount / tramRouteDurationSeconds;
+
+            let lastTime = performance.now();
+
+            function step() {
+                const currentTime = performance.now();
+                const deltaTime = (currentTime - lastTime) / 1000; // секунди
+                lastTime = currentTime;
+
+                const p1 = tramPath[tramIndex];
+                let p2 = tramPath[tramIndex + 1];
+
+                // Якщо досягли кінця шляху, починаємо з початку
+                if (!p2) {
+                    tramIndex = 0;
+                    tramProgress = 0;
+                    p2 = tramPath[1];
+                }
+
+                // Обчислюємо відстань між точками
+                const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+                
+                // Якщо відстань дуже мала, переходимо до наступної точки
+                if (dist < 0.00001) {
+                    tramIndex = (tramIndex + 1) % (tramPath.length - 1);
+                    tramProgress = 0;
+                    requestAnimationFrame(step);
+                    return;
+                }
+
+                // Оновлюємо прогрес: за deltaTime секунд проходимо пропорційну частину сегмента
+                tramProgress += segmentProgressPerSecond * deltaTime;
+
+                // Якщо досягли наступної точки
+                if (tramProgress >= 1) {
+                    tramProgress = 0;
+                    tramIndex = (tramIndex + 1) % (tramPath.length - 1);
+                }
+
+                // Обчислюємо поточну позицію між p1 та p2
+                const currentLng = p1[0] + (p2[0] - p1[0]) * tramProgress;
+                const currentLat = p1[1] + (p2[1] - p1[1]) * tramProgress;
+                const currentAlt = (p1[2] !== undefined && p2[2] !== undefined) 
+                    ? p1[2] + (p2[2] - p1[2]) * tramProgress 
+                    : (p1[2] !== undefined ? p1[2] : 0);
+
+                // Встановлюємо позицію трамваю
+                tramModel.setCoords([currentLng, currentLat, currentAlt]);
+
+                // Напрям руху
+                const bearing = bearingBetween([currentLng, currentLat], p2);
+
+                // Плавний поворот (rotX завжди 90 градусів)
+                // Використовуємо rotation.y для повороту в горизонтальній площині, коли модель повернута на 90° по X
+                tramModel.rotation.x = THREE.MathUtils.degToRad(90);
+                // bearing вже обчислює напрямок від поточної позиції до наступної точки
+                // -bearing тому що в Three.js поворот проти годинникової стрілки
+                // tramRotationOffset дозволяє корегувати кут, якщо модель орієнтована не так
+                tramModel.rotation.y = THREE.MathUtils.degToRad(-bearing + tramRotationOffset);
+
+                tb.update();
+                requestAnimationFrame(step);
+            }
+
+            step();
+        }
+
 
   // ==== маркери/моделі + LOADER ====
   let activeMarkerId = null;
