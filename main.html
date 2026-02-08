@@ -443,6 +443,24 @@ function calculateTotalPathDistance(path) {
     return total;
 }
 
+// Угол поворота в точке (между входящим и выходящим сегментами), градусы 0..180
+let tramTurnAnglesAtPoint = [];
+
+function calculateTurnAnglesAtPoints(path) {
+    if (!path || path.length < 3) return [];
+    const angles = [];
+    for (let j = 0; j < path.length; j++) {
+        const prev = path[j - 1] ?? path[path.length - 1];
+        const curr = path[j];
+        const next = path[j + 1] ?? path[0];
+        const bIn = bearingBetween(prev, curr);
+        const bOut = bearingBetween(curr, next);
+        let diff = Math.abs(((bOut - bIn + 540) % 360) - 180);
+        angles[j] = diff;
+    }
+    return angles;
+}
+
 // Вычисляем скорость на основе расстояния
 function calculateSpeedFromDistance(totalDistance, totalTime) {
     // totalDistance в метрах, totalTime в секундах
@@ -470,7 +488,8 @@ async function loadTramAndPath() {
             throw new Error('Invalid path data');
         }
         tramPath = data.points;
-        
+        tramTurnAnglesAtPoint = calculateTurnAnglesAtPoints(tramPath);
+
         // 2. Вычисляем общее расстояние и скорость
         totalPathDistance = calculateTotalPathDistance(tramPath);
         tramSpeed = calculateSpeedFromDistance(totalPathDistance, tramTotalTime);
@@ -484,7 +503,7 @@ async function loadTramAndPath() {
             {
                 type: 'gltf',
                 obj: 'models/tram.glb',
-                scale: 3,
+                scale: 2.5,
                 units: 'meters',
                 anchor: 'center',
                 rotation: {x: 90, y: 0, z: 0}
@@ -519,30 +538,45 @@ function bearingBetween(p1, p2) {
     return THREE.MathUtils.radToDeg(Math.atan2(y, x));
 }
 
+// Точка на відстані d (м) від (lng, lat) у напрямку bearing (градуси). Повертає [lng, lat].
+function pointAtDistance(lng, lat, d, bearingDeg) {
+    const R = 6371000;
+    const brng = bearingDeg * Math.PI / 180;
+    const lat1 = lat * Math.PI / 180, lon1 = lng * Math.PI / 180;
+    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(brng));
+    const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(d / R) * Math.cos(lat1), Math.cos(d / R) - Math.sin(lat1) * Math.sin(lat2));
+    return [lon2 * 180 / Math.PI, lat2 * 180 / Math.PI];
+}
+
+// Відстань від центру моделі до «носа» трамвая (м). На трасі — передня точка.
+// Якщо ефект не працює, спробуй змінити це значення (наприклад, 4, 8, або 10)
+const TRAM_FRONT_OFFSET_M = 6;
+
 function animateTram() {
     if (!tramModel || tramPath.length < 2) return;
 
     let lastTime = performance.now();
+    let targetQuaternion = new THREE.Quaternion();
+    let currentQuaternion = new THREE.Quaternion();
+    let rotationLerpSpeed = 4.2; // Базова швидкість повороту (трішки жвавіше)
 
     function step() {
         const currentTime = performance.now();
-        const deltaTime = (currentTime - lastTime) / 1000; // секунди
+        const deltaTime = (currentTime - lastTime) / 1000;
         lastTime = currentTime;
 
         const p1 = tramPath[tramIndex];
         let p2 = tramPath[tramIndex + 1];
 
-        // Якщо досягли кінця шляху, починаємо з початку
+        
         if (!p2) {
             tramIndex = 0;
             tramProgress = 0;
             p2 = tramPath[1];
         }
 
-        // Вычисляем расстояние между текущими точками
         const segmentDistance = haversineDistance(p1[0], p1[1], p2[0], p2[1]);
         
-        // Если расстояние очень мало, переходим к следующей точке
         if (segmentDistance < 0.1) {
             tramIndex = (tramIndex + 1) % (tramPath.length - 1);
             tramProgress = 0;
@@ -550,40 +584,100 @@ function animateTram() {
             return;
         }
 
-        // Вычисляем скорость для этого сегмента
-        // Для равномерной скорости время прохождения сегмента должно быть пропорционально его длине
-        // Время на сегмент = (длина сегмента / общая длина) * общее время
         const segmentTimeRatio = segmentDistance / totalPathDistance;
         const segmentSpeed = 1 / (tramTotalTime * segmentTimeRatio);
-        
-        // Обновляем прогресс с учетом времени
-        tramProgress += segmentSpeed * deltaTime;
 
-        // Если достигли следующей точки
+        // Замедление на поворотах: сильнее в самом повороте; входить в поворот начинаем на 2/3 дороги до него
+        const turnAtStart = tramTurnAnglesAtPoint[tramIndex] ?? 0;
+        const turnAtEnd = tramTurnAnglesAtPoint[tramIndex + 1] ?? 0;
+        const maxTurnOnSegment = Math.max(turnAtStart, turnAtEnd);
+        let speedMultiplier = 1;
+        const turnFactor = maxTurnOnSegment > 0 ? Math.min(1, maxTurnOnSegment / 90) : 0;
+        if (maxTurnOnSegment > 0) {
+            // В самом повороте — ещё сильнее замедляемся
+            speedMultiplier = 1 - 0.88 * turnFactor;
+            speedMultiplier = Math.max(0.12, speedMultiplier);
+        }
+        // На 2/3 дороги перед поворотом уже начинаем заходить (замедляемся)
+        if (turnAtEnd > 0 && tramProgress >= 2/3) {
+            const approachFactor = (tramProgress - 2/3) / (1/3);
+            const approachSlowdown = 1 - 0.7 * Math.min(1, turnAtEnd / 90) * approachFactor;
+            speedMultiplier = Math.min(speedMultiplier, Math.max(0.12, approachSlowdown));
+        }
+
+        tramProgress += segmentSpeed * deltaTime * speedMultiplier;
+
         if (tramProgress >= 1) {
             tramProgress = 0;
             tramIndex = (tramIndex + 1) % (tramPath.length - 1);
         }
 
-        // Обчислюємо поточну позицію між p1 та p2
+        // Внутри step() функции, после вычисления tramProgress:
+        if (tramProgress > 0.9) {
+        const easeProgress = (tramProgress - 0.9) / 0.1;
+        tramProgress = 0.9 + easeProgress * 0.1;
+        }
+        // Точка на трасі = передня частина вагона («ніс»)
         const currentLng = p1[0] + (p2[0] - p1[0]) * tramProgress;
         const currentLat = p1[1] + (p2[1] - p1[1]) * tramProgress;
         const currentAlt = (p1[2] !== undefined && p2[2] !== undefined) 
             ? p1[2] + (p2[2] - p1[2]) * tramProgress 
             : (p1[2] !== undefined ? p1[2] : 0);
 
-        // Встановлюємо позицію трамваю
-        tramModel.setCoords([currentLng, currentLat, currentAlt]);
+        // Цільовий напрямок (куди дивиться «ніс»)
+        let lookAheadPoint = p2;
+        const lookAheadThreshold = 0.5;
+        if (tramProgress > lookAheadThreshold && tramIndex < tramPath.length - 2) {
+            lookAheadPoint = tramPath[tramIndex + 2];
+        } else if (tramProgress > lookAheadThreshold && tramIndex === tramPath.length - 2) {
+            lookAheadPoint = tramPath[0];
+        }
+        const bearing = bearingBetween([currentLng, currentLat], lookAheadPoint);
+        const targetEuler = new THREE.Euler(
+            THREE.MathUtils.degToRad(90),
+            THREE.MathUtils.degToRad(-bearing + tramRotationOffset),
+            0
+        );
+        targetQuaternion.setFromEuler(targetEuler);
+        const angleRad = 2 * Math.acos(Math.min(1, Math.abs(currentQuaternion.dot(targetQuaternion))));
+        const angleDeg = THREE.MathUtils.radToDeg(angleRad);
+        const adaptiveSpeed = angleDeg > 70 ? 13 : (angleDeg > 45 ? 8.5 : rotationLerpSpeed);
+        const lerpFactor = Math.min(1, adaptiveSpeed * deltaTime);
+        currentQuaternion.slerp(targetQuaternion, lerpFactor);
 
-        // Напрям руху
-        const bearing = bearingBetween([currentLng, currentLat], p2);
-
-        // Плавний поворот
-        tramModel.rotation.x = THREE.MathUtils.degToRad(90);
-        tramModel.rotation.y = THREE.MathUtils.degToRad(-bearing + tramRotationOffset);
+        // Варіант 5: Обчислюємо позицію центру правильно, використовуючи поточний курс
+        const currentEuler = new THREE.Euler().setFromQuaternion(currentQuaternion);
+        const currentBearing = -THREE.MathUtils.radToDeg(currentEuler.y) + tramRotationOffset;
+        
+        // Обчислюємо позицію центру (назад від «носа» по поточному курсу)
+        const [centerLng, centerLat] = pointAtDistance(currentLng, currentLat, TRAM_FRONT_OFFSET_M, currentBearing + 180);
+        
+        // Ставимо центр моделі
+        tramModel.setCoords([centerLng, centerLat, currentAlt]);
+        tramModel.setRotationFromQuaternion(currentQuaternion);
+        
+        // Додатково: якщо потрібно, застосовуємо локальне зміщення через Three.js
+        // (на випадок, якщо pointAtDistance не працює правильно)
+        if (tramModel.model && tramModel.model.position) {
+            // Встановлюємо локальну позицію (в локальних координатах моделі)
+            // Після повороту на 90° по X, вісь Z вказує вперед/назад
+            tramModel.model.position.set(0, 0, -TRAM_FRONT_OFFSET_M);
+        }
 
         tb.update();
         requestAnimationFrame(step);
+    }
+
+    // Инициализация начального поворота
+    if (tramPath.length > 1) {
+        const initialBearing = bearingBetween(tramPath[0], tramPath[1]);
+        const initialEuler = new THREE.Euler(
+            THREE.MathUtils.degToRad(90),
+            THREE.MathUtils.degToRad(-initialBearing + tramRotationOffset),
+            0
+        );
+        currentQuaternion.setFromEuler(initialEuler);
+        targetQuaternion.copy(currentQuaternion);
     }
 
     step();
