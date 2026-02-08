@@ -407,139 +407,187 @@
   });
 
         // ==== ТРАМВАЙ ====
-        let tramModel = null;
-        let tramPath = [];
-        let tramIndex = 0;
-        let tramProgress = 0; // прогрес між точками (0-1)
-        let tramSpeed = 0.0015; // швидкість (підбирай)
-        let tramRotationOffset = 0; // корекція кута повороту (в градусах), якщо модель орієнтована не так
+let tramModel = null;
+let tramPath = [];
+let tramIndex = 0;
+let tramProgress = 0;
+let tramRotationOffset = 0;
+let totalPathDistance = 0; // Общее расстояние всего маршрута
+let tramSpeed = 0.015; // Базовая скорость (будет пересчитываться)
+const tramTotalTime = 180; // Время для прохождения всего маршрута в секундах (3 минуты)
 
-        async function loadTramAndPath() {
-            try {
-                // 1. Завантажуємо шлях
-                const res = await fetch('path.json?' + Date.now()); // додаємо timestamp для уникнення кешу
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const text = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (parseError) {
-                    console.error('JSON parse error:', parseError);
-                    console.error('Response text:', text.substring(0, 200));
-                    throw new Error('Invalid JSON: ' + parseError.message);
-                }
-                if (!data || !Array.isArray(data.points) || data.points.length < 2) {
-                    throw new Error('Invalid path data');
-                }
-                tramPath = data.points;
+// Функция для вычисления расстояния между двумя точками в градусах
+function haversineDistance(lon1, lat1, lon2, lat2) {
+    const R = 6371000; // Радиус Земли в метрах
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-                // 2. Завантажуємо модель трамваю
-                tb.loadObj(
-                    {
-                        type: 'gltf',
-                        obj: 'models/tram.glb',   // ← ШЛЯХ ДО ТРАМВАЮ
-                        scale: 3,
-                        units: 'meters',
-                        anchor: 'center',
-                        rotation: {x: 90, y: 0, z: 0}
-                    },
-                    (obj) => {
-                        tramModel = obj;
-                        tramModel.setCoords(tramPath[0]);
-                        tb.add(tramModel);
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-                        animateTram();
-                    },
-                    (err) => {
-                        console.error('Error loading tram model:', err);
-                    }
-                );
-            } catch (error) {
-                console.error('Error loading tram path:', error);
+    return R * c; // Расстояние в метрах
+}
+
+// Вычисляем общее расстояние пути
+function calculateTotalPathDistance(path) {
+    let total = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+        const p1 = path[i];
+        const p2 = path[i + 1];
+        total += haversineDistance(p1[0], p1[1], p2[0], p2[1]);
+    }
+    return total;
+}
+
+// Вычисляем скорость на основе расстояния
+function calculateSpeedFromDistance(totalDistance, totalTime) {
+    // totalDistance в метрах, totalTime в секундах
+    // Возвращаем скорость в единицах прогресса в секунду
+    return 1 / totalTime; // 1 - это весь путь (100%)
+}
+
+async function loadTramAndPath() {
+    try {
+        // 1. Завантажуємо шлях
+        const res = await fetch('path.json?' + Date.now());
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('Response text:', text.substring(0, 200));
+            throw new Error('Invalid JSON: ' + parseError.message);
+        }
+        if (!data || !Array.isArray(data.points) || data.points.length < 2) {
+            throw new Error('Invalid path data');
+        }
+        tramPath = data.points;
+        
+        // 2. Вычисляем общее расстояние и скорость
+        totalPathDistance = calculateTotalPathDistance(tramPath);
+        tramSpeed = calculateSpeedFromDistance(totalPathDistance, tramTotalTime);
+        
+        console.log(`Общее расстояние маршрута: ${totalPathDistance.toFixed(2)} м`);
+        console.log(`Время прохождения: ${tramTotalTime} сек`);
+        console.log(`Рассчитанная скорость: ${tramSpeed.toFixed(6)} ед/сек`);
+
+        // 3. Завантажуємо модель трамваю
+        tb.loadObj(
+            {
+                type: 'gltf',
+                obj: 'models/tram.glb',
+                scale: 3,
+                units: 'meters',
+                anchor: 'center',
+                rotation: {x: 90, y: 0, z: 0}
+            },
+            (obj) => {
+                tramModel = obj;
+                tramModel.setCoords(tramPath[0]);
+                tb.add(tramModel);
+
+                animateTram();
+            },
+            (err) => {
+                console.error('Error loading tram model:', err);
             }
+        );
+    } catch (error) {
+        console.error('Error loading tram path:', error);
+    }
+}
+
+function bearingBetween(p1, p2) {
+    const lng1 = THREE.MathUtils.degToRad(p1[0]);
+    const lat1 = THREE.MathUtils.degToRad(p1[1]);
+    const lng2 = THREE.MathUtils.degToRad(p2[0]);
+    const lat2 = THREE.MathUtils.degToRad(p2[1]);
+
+    const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
+    const x =
+        Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
+
+    return THREE.MathUtils.radToDeg(Math.atan2(y, x));
+}
+
+function animateTram() {
+    if (!tramModel || tramPath.length < 2) return;
+
+    let lastTime = performance.now();
+
+    function step() {
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - lastTime) / 1000; // секунди
+        lastTime = currentTime;
+
+        const p1 = tramPath[tramIndex];
+        let p2 = tramPath[tramIndex + 1];
+
+        // Якщо досягли кінця шляху, починаємо з початку
+        if (!p2) {
+            tramIndex = 0;
+            tramProgress = 0;
+            p2 = tramPath[1];
         }
-        function bearingBetween(p1, p2) {
-            const lng1 = THREE.MathUtils.degToRad(p1[0]);
-            const lat1 = THREE.MathUtils.degToRad(p1[1]);
-            const lng2 = THREE.MathUtils.degToRad(p2[0]);
-            const lat2 = THREE.MathUtils.degToRad(p2[1]);
 
-            const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
-            const x =
-                Math.cos(lat1) * Math.sin(lat2) -
-                Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
-
-            return THREE.MathUtils.radToDeg(Math.atan2(y, x));
+        // Вычисляем расстояние между текущими точками
+        const segmentDistance = haversineDistance(p1[0], p1[1], p2[0], p2[1]);
+        
+        // Если расстояние очень мало, переходим к следующей точке
+        if (segmentDistance < 0.1) {
+            tramIndex = (tramIndex + 1) % (tramPath.length - 1);
+            tramProgress = 0;
+            requestAnimationFrame(step);
+            return;
         }
-        function animateTram() {
-            if (!tramModel || tramPath.length < 2) return;
 
-            let lastTime = performance.now();
+        // Вычисляем скорость для этого сегмента
+        // Для равномерной скорости время прохождения сегмента должно быть пропорционально его длине
+        // Время на сегмент = (длина сегмента / общая длина) * общее время
+        const segmentTimeRatio = segmentDistance / totalPathDistance;
+        const segmentSpeed = 1 / (tramTotalTime * segmentTimeRatio);
+        
+        // Обновляем прогресс с учетом времени
+        tramProgress += segmentSpeed * deltaTime;
 
-            function step() {
-                const currentTime = performance.now();
-                const deltaTime = (currentTime - lastTime) / 1000; // секунди
-                lastTime = currentTime;
-
-                const p1 = tramPath[tramIndex];
-                let p2 = tramPath[tramIndex + 1];
-
-                // Якщо досягли кінця шляху, починаємо з початку
-                if (!p2) {
-                    tramIndex = 0;
-                    tramProgress = 0;
-                    p2 = tramPath[1];
-                }
-
-                // Обчислюємо відстань між точками
-                const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
-                
-                // Якщо відстань дуже мала, переходимо до наступної точки
-                if (dist < 0.00001) {
-                    tramIndex = (tramIndex + 1) % (tramPath.length - 1);
-                    tramProgress = 0;
-                    requestAnimationFrame(step);
-                    return;
-                }
-
-                // Оновлюємо прогрес
-                tramProgress += tramSpeed * deltaTime * 60; // нормалізуємо до ~60 FPS
-
-                // Якщо досягли наступної точки
-                if (tramProgress >= 1) {
-                    tramProgress = 0;
-                    tramIndex = (tramIndex + 1) % (tramPath.length - 1);
-                }
-
-                // Обчислюємо поточну позицію між p1 та p2
-                const currentLng = p1[0] + (p2[0] - p1[0]) * tramProgress;
-                const currentLat = p1[1] + (p2[1] - p1[1]) * tramProgress;
-                const currentAlt = (p1[2] !== undefined && p2[2] !== undefined) 
-                    ? p1[2] + (p2[2] - p1[2]) * tramProgress 
-                    : (p1[2] !== undefined ? p1[2] : 0);
-
-                // Встановлюємо позицію трамваю
-                tramModel.setCoords([currentLng, currentLat, currentAlt]);
-
-                // Напрям руху
-                const bearing = bearingBetween([currentLng, currentLat], p2);
-
-                // Плавний поворот (rotX завжди 90 градусів)
-                // Використовуємо rotation.y для повороту в горизонтальній площині, коли модель повернута на 90° по X
-                tramModel.rotation.x = THREE.MathUtils.degToRad(90);
-                // bearing вже обчислює напрямок від поточної позиції до наступної точки
-                // -bearing тому що в Three.js поворот проти годинникової стрілки
-                // tramRotationOffset дозволяє корегувати кут, якщо модель орієнтована не так
-                tramModel.rotation.y = THREE.MathUtils.degToRad(-bearing + tramRotationOffset);
-
-                tb.update();
-                requestAnimationFrame(step);
-            }
-
-            step();
+        // Если достигли следующей точки
+        if (tramProgress >= 1) {
+            tramProgress = 0;
+            tramIndex = (tramIndex + 1) % (tramPath.length - 1);
         }
+
+        // Обчислюємо поточну позицію між p1 та p2
+        const currentLng = p1[0] + (p2[0] - p1[0]) * tramProgress;
+        const currentLat = p1[1] + (p2[1] - p1[1]) * tramProgress;
+        const currentAlt = (p1[2] !== undefined && p2[2] !== undefined) 
+            ? p1[2] + (p2[2] - p1[2]) * tramProgress 
+            : (p1[2] !== undefined ? p1[2] : 0);
+
+        // Встановлюємо позицію трамваю
+        tramModel.setCoords([currentLng, currentLat, currentAlt]);
+
+        // Напрям руху
+        const bearing = bearingBetween([currentLng, currentLat], p2);
+
+        // Плавний поворот
+        tramModel.rotation.x = THREE.MathUtils.degToRad(90);
+        tramModel.rotation.y = THREE.MathUtils.degToRad(-bearing + tramRotationOffset);
+
+        tb.update();
+        requestAnimationFrame(step);
+    }
+
+    step();
+}
 
 
   // ==== маркери/моделі + LOADER ====
