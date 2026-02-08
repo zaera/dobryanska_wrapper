@@ -411,7 +411,7 @@
         let tramPath = [];
         let tramIndex = 0;
         let tramProgress = 0; // прогрес між точками (0-1)
-        const tramRouteDurationSeconds = 120; // час проходження всього маршруту в секундах
+        let tramSpeed = 0.0015; // швидкість (підбирай)
         let tramRotationOffset = 0; // корекція кута повороту (в градусах), якщо модель орієнтована не так
 
         async function loadTramAndPath() {
@@ -476,10 +476,6 @@
         function animateTram() {
             if (!tramModel || tramPath.length < 2) return;
 
-            // Швидкість: весь маршрут (усі сегменти) проходимо за tramRouteDurationSeconds секунд
-            const segmentCount = tramPath.length - 1;
-            const segmentProgressPerSecond = segmentCount / tramRouteDurationSeconds;
-
             let lastTime = performance.now();
 
             function step() {
@@ -508,8 +504,8 @@
                     return;
                 }
 
-                // Оновлюємо прогрес: за deltaTime секунд проходимо пропорційну частину сегмента
-                tramProgress += segmentProgressPerSecond * deltaTime;
+                // Оновлюємо прогрес
+                tramProgress += tramSpeed * deltaTime * 60; // нормалізуємо до ~60 FPS
 
                 // Якщо досягли наступної точки
                 if (tramProgress >= 1) {
