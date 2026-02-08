@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" href="style.css">
     <meta charset="utf-8" />
-    <title>Історичні будівлі Дніпра — мапа з Threebox</title>
+    <title>Історичні будівлі Дніпра - інтерактивна мапа</title>
     <link rel="icon" type="image/png" href="logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -297,10 +297,11 @@
     pitch: MAPCFG.pitch ?? 50,
     bearing: MAPCFG.bearing ?? 10,
     antialias: true,
-    attributionControl: false
+    attributionControl: false,
+      minZoom: 14,
   });
     //map.setMinPitch(45);
-    map.setMaxPitch(70);
+    map.setMaxPitch(65);
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch:true }), 'top-right');
 
   // Переключатель стилю
